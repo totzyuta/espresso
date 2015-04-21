@@ -4,7 +4,7 @@
 #include "define.h"
 
 /*--< 遷移表の定義 >--*/
-static StateType table[11][11] = {
+// static StateType table[11][11] = {
   // Original Program
   /* delim , number , alpha , kagen , joujo , brackets , eq , comp , colon , semi_c , error */ 
   // { Final , Int , Ident , Kagen , Joujo , Brackets , Eq1 , Comp , Colon , Semi_c , Error }/* Init */
@@ -18,18 +18,13 @@ static StateType table[11][11] = {
   // { Final , Final , Final , Final , Final , Final , Final , Final , Final , Final , Final }/* Comp */
   // { Final , Final , Final , Final , Final , Final , Final , Final , Final , Final , Final }/* Colon */
   // { Final , Final , Final , Final , Final , Final , Final , Final , Final , Final , Final }/* Semi_c */
-
-  // New minimum program
-  /* delim,   number,   error */
-  {  Final,   Int,      Error }/* Init */
-  {  Final ,  Int ,     Final }/* Int */
-};
+// };
 
 // New Minimum Lexical Analyzer
-static StateType table[11][11] = {
+static StateType table[2][3] = {
   // New minimum program
   /* delim,   number,   error */
-  {  Final,   Int,      Error }/* Init */
+  {  Final,   Int,      Error },/* Init */
   {  Final ,  Int ,     Final }/* Int */
 };
 
@@ -40,6 +35,16 @@ TokenSt *nextToken(FILE *fp){
   static char	FIFO[TOKENMAX];
   TokenSt	*token = NULL;
   StateType	state, nstate;
+
+  // 1文字ずつ読み込んで状態遷移する
+  nstate = table[state][/*TODO*/];
+
+  // 終了状態になった時
+  // 構造体のメモリを確保し
+  token = (TokenSt *)malloc(sizeof(TokenSt));
+  // tokenに情報を格納
+  strcpy(token->string, FIFO);
+  token->type = /* TODO */;
 
   return token;
 }

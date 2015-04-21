@@ -73,7 +73,7 @@ typedef enum {
 /*--< トークンを格納する構造体 >--*/
 typedef struct {
   char 		string[TOKENMAX];	/* トークンの文字列 */
-  TokenType	type;			/* トークンのタイプ */
+  TokenType	type;			/* トークンのタイプをすべて保持してるdefine.h:31 */
 } TokenSt;
 
 typedef struct node {

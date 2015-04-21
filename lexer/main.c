@@ -6,6 +6,7 @@
 /* この関数は,字句を切り出して,TokenSt構造体に入れて,そのポインタを返す */
 /* これ以上字句がない時は NULLを返す                                    */
 /* なお，構造体を保持するメモリは,内部で mallocしている                 */
+// lex.cで定義
 TokenSt *nextToken(FILE *fp);
 
 
@@ -37,6 +38,9 @@ int main(int argc, char *argv[]){
 
   /*--< 後始末 >--*/
   fclose(fp);
+
+  printf("Program Ends! Bye :)");
+
   return 0;
 }
 
