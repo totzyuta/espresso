@@ -28,14 +28,24 @@ int main(int argc, char *argv[]){
     exit(1);
   }
 
+  int i=0; // for debugging
   /*--< 字句を順番に取り出す )--*/
-  while ( (token = nextToken(fp)) != NULL ){
+  // while ( (token = nextToken(fp)) != NULL ){
+    // debug
+    i++;
+    printf("----------------\n", i);
+    printf("   %d times     \n", i);
+    printf("----------------\n", i);
+    if (token != NULL) 
+      printf("Token is not NULL.\n");
+
+    token = nextToken(fp);
     /*--< 字句の情報を表示する >--*/
     printf("Type:%02d  String:[%s]\n",token->type, token->string);
     /*--< 不必要になったら,ちゃんと解放する >--*/
     free(token); 
-  }
-
+  // }
+  
   /*--< 後始末 >--*/
   fclose(fp);
 

@@ -24,7 +24,7 @@
 static StateType table[2][3] = {
   // New minimum program
   /* delim,   number,   error */
-  {  Final,   Int,      Error },/* Init */
+  {  Final,   Int,      Final },/* Init */
   {  Final ,  Int ,     Final }/* Int */
 };
 
@@ -32,19 +32,32 @@ static CharType charToCharType(int c);
 static TokenType whichTokenType(char *s, StateType state);
 
 TokenSt *nextToken(FILE *fp){
+  // debug
+  printf("nextToken() Called!\n");
+
   static char	FIFO[TOKENMAX];
   TokenSt	*token = NULL;
+  // nstateは次のトークンの状態(nextstate)
   StateType	state, nstate;
 
+  // debug
+  printf("- Before -\n");
+  printf("token->string: %s \n", token->string);
+
   // 1文字ずつ読み込んで状態遷移する
-  nstate = table[state][/*TODO*/];
+  nstate = table[state][charToCharType( *(token->string) )];
 
   // 終了状態になった時
-  // 構造体のメモリを確保し
+  // 読み込んだトークンを保存するための構造体のメモリを確保
   token = (TokenSt *)malloc(sizeof(TokenSt));
   // tokenに情報を格納
   strcpy(token->string, FIFO);
-  token->type = /* TODO */;
+  token->type = whichTokenType(token->string, state);
+
+  // debug
+  printf("- After -\n");
+  printf("token->string: %s \n", token->string);
+  printf("token->type: %i \n", token->type);
 
   return token;
 }
@@ -52,6 +65,9 @@ TokenSt *nextToken(FILE *fp){
 
 /*--< 文字を入力とし,文字の種類を返す関数 >--*/
 static CharType charToCharType(int c){
+  // debug
+  printf("charToCharType() Called!\n");
+
   if ((c>='0')&&(c<='9')) return number;
   // if (((c>='a')&&(c<='z'))||((c>='A')&&(c<='Z'))) return alpha;
   // if ((c=='*')||(c=='/')) return joujo;
@@ -64,8 +80,11 @@ static CharType charToCharType(int c){
   return error;
 }
 
-/*--< 直前の状態と(トークンの)文字列を入力とし,トークンの種類を返す関数 >--*/
+/*--< (トークンの)文字列と直前の状態を入力とし,トークンの種類を返す関数 >--*/
 static TokenType whichTokenType(char *s, StateType state){
+  // debug
+  printf("whichTokenType() Called!\n");
+
   if (state == Int) return INTEGER;
   /*
   if (strcmp(s, "define") == 0) return DEFINE;

@@ -4,7 +4,7 @@ HDRS	      = define.h
 LDFLAGS	      =
 LIBS	      =
 OBJS	      = main.o lex.o
-PROGRAM	      = token
+PROGRAM	      = lexer
 
 #all:		$(PROGRAM)
 
