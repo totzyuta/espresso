@@ -31,14 +31,15 @@ int main(int argc, char *argv[]){
   int i=0; // for debugging
   /*--< 字句を順番に取り出す )--*/
   // while ( (token = nextToken(fp)) != NULL ){
-  while (i<5){
+  char c;
+  while ( (c=getc(fp)) != EOF) {
+  // while (i<5){
+    ungetc(c, fp);
     // debug
     i++;
     printf("----------------\n", i);
     printf("   %dth token   \n", i);
     printf("----------------\n", i);
-    if (token != NULL) 
-      printf("Token is not NULL.\n");
 
     token = nextToken(fp);
     /*--< 字句の情報を表示する >--*/
