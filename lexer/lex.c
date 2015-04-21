@@ -35,17 +35,27 @@ TokenSt *nextToken(FILE *fp){
   // debug
   printf("nextToken() Called!\n");
 
+  // TODO: ASK!
   static char	FIFO[TOKENMAX];
   TokenSt	*token = NULL;
   // nstateは次のトークンの状態(nextstate)
   StateType	state, nstate;
+  // 現在の状態がなければ初期状態とする
+  // TODO: ASK! 
+  if (state)
+    state = Init;
 
   // debug
   printf("- Before -\n");
+  printf("token->type: %d \n", token->type);
   printf("token->string: %s \n", token->string);
 
   // 1文字ずつ読み込んで状態遷移する
-  nstate = table[state][charToCharType( *(token->string) )];
+  char c = getc(fp) ;
+  // debug
+  printf("Input Character: %c \n", c);
+  // TODO: ASK!
+  nstate = table[state][charToCharType(c)];
 
   // 終了状態になった時
   // 読み込んだトークンを保存するための構造体のメモリを確保
@@ -54,6 +64,7 @@ TokenSt *nextToken(FILE *fp){
   strcpy(token->string, FIFO);
   token->type = whichTokenType(token->string, state);
 
+  // token->string[0] = c;
   // debug
   printf("- After -\n");
   printf("token->string: %s \n", token->string);
@@ -63,7 +74,7 @@ TokenSt *nextToken(FILE *fp){
 }
 
 
-/*--< 文字を入力とし,文字の種類を返す関数 >--*/
+/*--< 文字を入力とし,文字の種類を対応する数字で返す関数 >--*/
 static CharType charToCharType(int c){
   // debug
   printf("charToCharType() Called!\n");

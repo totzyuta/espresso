@@ -31,6 +31,8 @@ int main(int argc, char *argv[]){
   int i=0; // for debugging
   /*--< 字句を順番に取り出す )--*/
   // while ( (token = nextToken(fp)) != NULL ){
+  while ( (token = nextToken(fp)) != NULL ){
+  // while (i<3){
     // debug
     i++;
     printf("----------------\n", i);
@@ -44,7 +46,7 @@ int main(int argc, char *argv[]){
     printf("Type:%02d  String:[%s]\n",token->type, token->string);
     /*--< 不必要になったら,ちゃんと解放する >--*/
     free(token); 
-  // }
+  }
   
   /*--< 後始末 >--*/
   fclose(fp);

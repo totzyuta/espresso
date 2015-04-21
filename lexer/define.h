@@ -5,8 +5,8 @@
 /*extern int flag;*/
 /*--< 文字のタイプ >--*/
 typedef enum {
-  delim,	/* 区切り記号(空白,TAB,改行)		*/
-  number,	/* 数字 0～9				*/
+  delim,	/* 0: 区切り記号(空白,TAB,改行)		*/
+  number,	/* 1: 数字 0～9				*/
   alpha,        /* 英字 a～z, A～Z                       */
   arithem,      /* 算術演算子 +-                          */
   relation,     /* 比較　 < >                           */
