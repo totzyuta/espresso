@@ -33,48 +33,66 @@ static TokenType whichTokenType(char *s, StateType state);
 
 TokenSt *nextToken(FILE *fp){
   // debug
-  printf("nextToken() Called!\n");
+  // printf("nextToken() Called!\n");
 
-  // TODO: ASK!
+  // FIFO配列全体でトークンになるように
+  // 文字を一文字ずつ格納する
   static char	FIFO[TOKENMAX];
   TokenSt	*token = NULL;
   // nstateは次のトークンの状態(nextstate)
   StateType	state, nstate;
-  // 現在の状態がなければ初期状態とする
-  // TODO: ASK! 
-  if (state)
-    state = Init;
+  // 現在の状態を初期状態にリセット
+  state = Init;
 
-  // debug
-  printf("- Before -\n");
-  printf("token->type: %d \n", token->type);
-  printf("token->string: %s \n", token->string);
+  // 一文字ずつ読んでいって
+  // 終了状態まで遷移を行う
+  int i=0;
+  while (1) {
+    // ファイルから1文字読み込む
+    char c = getc(fp);
+    // 配列の最後に格納
+    if (c!=' ') 
+      FIFO[i] = c; 
+    // debug
+    printf("%d文字目は%cです\n", i, c);
+    // debug
+    // printf("Input Character: %c \n", c);
+    // tableをもとに次の状態に遷移
+    nstate = table[state][charToCharType(c)];
+    // 終了状態はStateTypeのenumで7
+    if (nstate==7) {
+      // 読み込み終了前処理
+      i++;
+      FIFO[i]='\0';
+      break;
+    }
+    // 状態を更新
+    state = nstate;
+    i++;
+  }
 
-  // 1文字ずつ読み込んで状態遷移する
-  char c = getc(fp) ;
-  // debug
-  printf("Input Character: %c \n", c);
-  // TODO: ASK!
-  nstate = table[state][charToCharType(c)];
 
-  // 終了状態になった時
+  /*
+   * ここから終了状態になった時の処理
+   */
+
   // 読み込んだトークンを保存するための構造体のメモリを確保
   token = (TokenSt *)malloc(sizeof(TokenSt));
   // tokenに情報を格納
   strcpy(token->string, FIFO);
   token->type = whichTokenType(token->string, state);
 
-  // token->string[0] = c;
   // debug
   printf("- After -\n");
-  printf("token->string: %s \n", token->string);
-  printf("token->type: %i \n", token->type);
+  printf("token->string: '%s' \n", token->string);
+  printf("token->type: '%i' \n", token->type);
 
   return token;
 }
 
 
 /*--< 文字を入力とし,文字の種類を対応する数字で返す関数 >--*/
+// Ex. cが3のときはCharTypeのうちnumberを返すので、数字だとnumberは1を表す
 static CharType charToCharType(int c){
   // debug
   printf("charToCharType() Called!\n");
