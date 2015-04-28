@@ -40,7 +40,7 @@ static TokenType whichTokenType(char *s, StateType state);
 TokenSt *nextToken(FILE *fp){
   // debug
   // printf("nextToken() Called!\n");
-
+  
   // FIFO配列全体でトークンになるように
   // 文字を一文字ずつ格納する
   static char	FIFO[TOKENMAX];
@@ -62,8 +62,10 @@ TokenSt *nextToken(FILE *fp){
     }
     // 配列の最後に格納
     FIFO[i] = c; 
+
     // debug
-    printf("%d文字目は%cです\n", i, c);
+    // printf("%d文字目は%cです\n", i, c);
+    
     // tableをもとに次の状態に遷移
     nstate = table[state][charToCharType(c)];
     // 終了状態はStateTypeのenumで7
@@ -125,6 +127,7 @@ static TokenType whichTokenType(char *s, StateType state){
   if (strcmp(s, "if") == 0) return IF;
   if (strcmp(s, "while") == 0) return WHILE;
   if (strcmp(s, "func") == 0) return FUNC;
+  if (strcmp(s, "return") == 0) return RETURN;
   if (state == Identifer) return IDENT;
   if (strcmp(s, "+") == 0) return ADD;
   if (strcmp(s, "-") == 0) return SUB;

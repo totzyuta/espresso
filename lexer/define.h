@@ -37,27 +37,28 @@ typedef enum {
   WHILE,	      /* 予約語 while   02  */
   IF,           /* 予約語 if      03  */
   FUNC,         /* 関数宣言 func  04  */
-  IDENT,	      /* 識別子	       	05  */
-  ADD,		      /* 加算演算子 +	 	06  */
-  SUB,          /* 減算演算子 -   07  */
-  MUL,  	    /* 乗算演算子 *   08  */
-  DIV,          /* 除算演算子 /   09  */
-  EQUAL,        /* 等号   =       10  */
-  GREATER,      /* 大なり >       11  */
-  EQGREATER,    /*        >=      12  */
-  LESS,         /* 小なり <       13  */
-  EQLESS,       /*        <=      14  */
-  NEQUAL,       /*        !=      15  */
-  EQUAL2,       /* 比較  ==       16  */
-  COMMA,        /*コンマ  ,       17  */
-  SEMICOLON,    /*セミコロン ;    18  */
-  LPAREN,       /*        (       19  */
-  RPAREN,       /*        )       20  */
-  LCURLY,       /*        {       21  */
-  RCURLY,       /*        }       22  */
-  LSQUARE,      /*        [       23  */
-  RSQUARE,      /*        ]       24  */
-  ERROR,        /*                25  */ 
+  RETURN,       /* 返り血 return  05  */
+  IDENT,	      /* 識別子	       	06  */
+  ADD,		      /* 加算演算子 +	 	07  */
+  SUB,          /* 減算演算子 -   08  */
+  MUL,  	      /* 乗算演算子 *   09  */
+  DIV,          /* 除算演算子 /   10  */
+  EQUAL,        /* 等号   =       11  */
+  GREATER,      /* 大なり >       12  */
+  EQGREATER,    /*        >=      13  */
+  LESS,         /* 小なり <       14  */
+  EQLESS,       /*        <=      15  */
+  NEQUAL,       /*        !=      16  */
+  EQUAL2,       /* 比較  ==       17  */
+  COMMA,        /*コンマ  ,       18  */
+  SEMICOLON,    /*セミコロン ;    19  */
+  LPAREN,       /*        (       20  */
+  RPAREN,       /*        )       21  */
+  LCURLY,       /*        {       22  */
+  RCURLY,       /*        }       23  */
+  LSQUARE,      /*        [       24  */
+  RSQUARE,      /*        ]       25  */
+  ERROR,        /*                26  */ 
   DOLLAR
 } TokenType;
 

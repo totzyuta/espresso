@@ -28,26 +28,17 @@ int main(int argc, char *argv[]){
     exit(1);
   }
 
-  int i=0; // for debugging
+  // int i=0; // for debugging
   /*--< 字句を順番に取り出す )--*/
   char c;
-  while ( (c=getc(fp)) != EOF ) {
-
-    // 最後のEOFを先読み
-    if ( (c=getc(fp)) == EOF ) {
-      // 次がEOFだったらプログラムおわり
-      break;
-    }else {
-      // EOFじゃなかったらやっぱ戻す
-      ungetc(c, fp);
-    }
-
-    ungetc(c, fp);
+  // while ( (c=getc(fp)) != EOF ) {
+  while ( feof(fp) == 0 ) {
+    
     // debug
-    i++;
-    printf("----------------\n", i);
-    printf("   %dth token   \n", i);
-    printf("----------------\n", i);
+    // i++;
+    // printf("----------------\n", i);
+    // printf("   %dth token   \n", i);
+    // printf("----------------\n", i);
 
     token = nextToken(fp);
     /*--< 字句の情報を表示する >--*/
