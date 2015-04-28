@@ -41,11 +41,8 @@ int main(int argc, char *argv[]){
 
     token = nextToken(fp);
     /*--< 字句の情報を表示する >--*/
-    if (token!=NULL) {
+    if (token!=NULL)
       printf("Type:%02d  String:[%s]\n",token->type, token->string);
-    }else{
-      printf("NULL!");
-    }
     /*--< 不必要になったら,ちゃんと解放する >--*/
     free(token); 
   }
