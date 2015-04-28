@@ -86,11 +86,6 @@ TokenSt *nextToken(FILE *fp){
   strcpy(token->string, FIFO);
   token->type = whichTokenType(token->string, state);
 
-  // debug
-  printf("- After -\n");
-  printf("token->string: '%s' \n", token->string);
-  printf("token->type: '%i' \n", token->type);
-
   return token;
 }
 
