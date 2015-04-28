@@ -21,11 +21,12 @@
 // };
 
 // New Minimum Lexical Analyzer
-static StateType table[2][3] = {
+static StateType table[3][4] = {
   // New minimum program
-  /* delim,   number,   error */
-  {  Final,   Int,      Final },/* Init */
-  {  Final ,  Int ,     Final }/* Int */
+  /* delim,   number,   alpha,      error */
+  {  Final,   Int,      Identifer,  Final },  /* Init */
+  {  Final ,  Int ,     Final,      Final },  /* Int */
+  {  Final ,  Identifer,Identifer,  Final }   /* Identifer */
 };
 
 static CharType charToCharType(int c);
@@ -97,7 +98,7 @@ static CharType charToCharType(int c){
   printf("charToCharType() Called! Argument: %d \n", c);
 
   if ((c>='0')&&(c<='9')) return number;
-  // if (((c>='a')&&(c<='z'))||((c>='A')&&(c<='Z'))) return alpha;
+  if (((c>='a')&&(c<='z'))||((c>='A')&&(c<='Z'))) return alpha;
   // if ((c=='*')||(c=='/')) return joujo;
   // if ((c=='>')||(c=='<')) return comp;
   // if (c=='=') return eq;
@@ -114,27 +115,25 @@ static TokenType whichTokenType(char *s, StateType state){
   printf("whichTokenType() Called!\n");
 
   if (state == Int) return INTEGER;
-  /*
-  if (strcmp(s, "define") == 0) return DEFINE;
-  if (strcmp(s, "null") == 0) return NIL;
-  if (strcmp(s, "if") == 0) return IF;
-  if (strcmp(s, "while") == 0) return WHILE;
-  if (state == Ident) return IDENT;
-  if (strcmp(s, "+") == 0) return ADD;
-  if (strcmp(s, "-") == 0) return SUB;
-  if (strcmp(s, "*") == 0) return MUL;
-  if (strcmp(s, "/") == 0) return DIV;
-  if (strcmp(s, "(") == 0) return L_S_BRACKETS;
-  if (strcmp(s, ")") == 0) return R_S_BRACKETS;
-  if (strcmp(s, "{") == 0) return L_M_BRACKETS;
-  if (strcmp(s, "}") == 0) return R_M_BRACKETS;
-  if (strcmp(s, "[") == 0) return L_L_BRACKETS;
-  if (strcmp(s, "]") == 0) return R_L_BRACKETS;
-  if (strcmp(s, "=") == 0) return EQUAL;
-  if (strcmp(s, ">") == 0) return B_COMP;
-  if (strcmp(s, "<") == 0) return L_COMP;
-  if (strcmp(s, "==") == 0) return E_COMP;
-  if (strcmp(s, ":") == 0) return COLON;
-  if (strcmp(s, ";") == 0) return SEMI_C;
-  */
+  // if (strcmp(s, "define") == 0) return DEFINE;
+  // if (strcmp(s, "null") == 0) return NIL;
+  // if (strcmp(s, "if") == 0) return IF;
+  // if (strcmp(s, "while") == 0) return WHILE;
+  if (state == Identifer) return IDENT;
+  // if (strcmp(s, "+") == 0) return ADD;
+  // if (strcmp(s, "-") == 0) return SUB;
+  // if (strcmp(s, "*") == 0) return MUL;
+  // if (strcmp(s, "/") == 0) return DIV;
+  // if (strcmp(s, "(") == 0) return L_S_BRACKETS;
+  // if (strcmp(s, ")") == 0) return R_S_BRACKETS;
+  // if (strcmp(s, "{") == 0) return L_M_BRACKETS;
+  // if (strcmp(s, "}") == 0) return R_M_BRACKETS;
+  // if (strcmp(s, "[") == 0) return L_L_BRACKETS;
+  // if (strcmp(s, "]") == 0) return R_L_BRACKETS;
+  // if (strcmp(s, "=") == 0) return EQUAL;
+  // if (strcmp(s, ">") == 0) return B_COMP;
+  // if (strcmp(s, "<") == 0) return L_COMP;
+  // if (strcmp(s, "==") == 0) return E_COMP;
+  // if (strcmp(s, ":") == 0) return COLON;
+  // if (strcmp(s, ";") == 0) return SEMI_C;
 }
