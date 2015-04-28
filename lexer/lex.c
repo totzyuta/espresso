@@ -51,8 +51,12 @@ TokenSt *nextToken(FILE *fp){
     // ファイルから1文字読み込む
     char c = getc(fp);
     // 配列の最後に格納
-    if (c!=' ') 
+    if (c!=' ' && c!='\n' && c!='\t') {
       FIFO[i] = c; 
+    }else {
+      FIFO[i] = '\0';
+      break;
+    }
     // debug
     printf("%d文字目は%cです\n", i, c);
     // debug
@@ -92,10 +96,10 @@ TokenSt *nextToken(FILE *fp){
 
 
 /*--< 文字を入力とし,文字の種類を対応する数字で返す関数 >--*/
-// Ex. cが3のときはCharTypeのうちnumberを返すので、数字だとnumberは1を表す
+// Ex. cが3のときはCharTypeのうちnumberを返すので、数値だとnumberは1を表す
 static CharType charToCharType(int c){
   // debug
-  printf("charToCharType() Called!\n");
+  printf("charToCharType() Called! Argument: %d \n", c);
 
   if ((c>='0')&&(c<='9')) return number;
   // if (((c>='a')&&(c<='z'))||((c>='A')&&(c<='Z'))) return alpha;
