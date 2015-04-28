@@ -7,12 +7,14 @@
 typedef enum {
   delim,	  /* 0: 区切り記号(空白,TAB,改行)	*/
   number,	  /* 1: 数字 0～9				          */
-  alpha,    /* 英字 a～z, A～Z              */
-  arithem,  /* 算術演算子 +-                */
-  relation, /* 比較　 < >                   */
-  mark,     /* 記号 , ; ( ) { } [ ]         */
-  equal,    /* =                            */
-  error		  /* 未定義文字				            */
+  alpha,    /* 2: 英字 a～z, A～Z              */
+  brackets, /* 3: < >                          */
+  // arithem,  /* 算術演算子 +-                */
+  eq,       /* 4: =                            */
+  sign,     /* 5: + - * / { } [ ] ( ) ;     */
+  excl,     /* 6: !                            */
+  // relation, /* 比較　 < >                   */
+  error		  /* 7: 未定義文字				            */
 } CharType;
 
 /*--< 状態のタイプ >--*/
@@ -20,42 +22,44 @@ typedef enum {
   Init,           /*初期状態*/
   Int,            /*数状態*/
   Identifer,      /*識別子状態*/
-  Arithmetic,     /*算術演算子状態*/
+  // Arithmetic,    /*算術演算子状態*/
   Relational,     /*比較演算子*/
-  Mark,           /*記号状態*/
-  Equal,          /*等号状態*/
+  Relational2,    /*比較演算子(NotEqual)*/
+  Not,            /*Not状態*/
+  NotEq,          /*不等号状態*/
+  Sign,           /*記号状態*/
+  // Equal,         /*等号状態*/
   Final           /*終了状態*/
 } StateType;
 
 /*--<トークンのタイプ >--*/
 typedef enum {
-  INTEGER,	/* 整数		           00   */
-  IDENT,	  /* 識別子	           01	  */
-  ADD,		  /* 加算演算子 +	     02	  */
-  SUB,      /* 減算演算子 -      3    */
-  MULTI,  	/* 乗算演算子 *      4    */
-  DIV,      /* 除算演算子 /      5    */
-  EQUAL,        /* 等号   =      6    */
-  EQUAL2,       /* 等号2  ==     7    */
-  GREATER,      /* 大なり >      8    */
-  EQUGRET,      /*        >=     9    */
-  LESS,         /* 小なり <      10   */
-  EQULESS,      /*        <=     11   */
-  COMMA,        /*コンマ  ,      12   */
-  SEMICOLON,    /*セミコロン ;   13   */
-  LAREN,        /*        (      14   */
-  RPAREN,       /*        )      15   */
-  LCURLY,       /*        {      16   */
-  RCURLY,       /*        }      17   */
-  LSQUARE,      /*        [      18   */
-  RSQUARE,      /*        ]      19   */
-  VOID,         /*        void   20   */
-  DEFINE,       /*        define 21   */
-  ARRAY,        /* 格納子 array  22   */
-  WHILE,	      /* 予約語 while  23   */
-  IF,           /* 予約語 if     24   */
-  ELSE,         /* 予約後 else   25   */ 
-  ERROR,        /*               26   */ 
+  INTEGER,	    /* 整数		        00  */
+  DEFINE,       /*        define  01  */
+  WHILE,	      /* 予約語 while   02  */
+  IF,           /* 予約語 if      03  */
+  FUNC,         /* 関数宣言 func  04  */
+  IDENT,	      /* 識別子	       	05  */
+  ADD,		      /* 加算演算子 +	 	06  */
+  SUB,          /* 減算演算子 -   07  */
+  MUL,  	    /* 乗算演算子 *   08  */
+  DIV,          /* 除算演算子 /   09  */
+  EQUAL,        /* 等号   =       10  */
+  GREATER,      /* 大なり >       11  */
+  EQGREATER,    /*        >=      12  */
+  LESS,         /* 小なり <       13  */
+  EQLESS,       /*        <=      14  */
+  NEQUAL,       /*        !=      15  */
+  EQUAL2,       /* 比較  ==       16  */
+  COMMA,        /*コンマ  ,       17  */
+  SEMICOLON,    /*セミコロン ;    18  */
+  LPAREN,       /*        (       19  */
+  RPAREN,       /*        )       20  */
+  LCURLY,       /*        {       21  */
+  RCURLY,       /*        }       22  */
+  LSQUARE,      /*        [       23  */
+  RSQUARE,      /*        ]       24  */
+  ERROR,        /*                25  */ 
   DOLLAR
 } TokenType;
 

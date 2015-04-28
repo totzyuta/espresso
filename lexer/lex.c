@@ -21,12 +21,17 @@
 // };
 
 // New Minimum Lexical Analyzer
-static StateType table[3][4] = {
+static StateType table[8][8] = {
   // New minimum program
-  /* delim,   number,   alpha,      error */
-  {  Final,   Int,      Identifer,  Final },  /* Init */
-  {  Final ,  Int ,     Final,      Final },  /* Int */
-  {  Final ,  Identifer,Identifer,  Final }   /* Identifer */
+  /* delim,   number,   alpha,      brackets,   eq,         sign,       excl,     error */
+  {  Final,   Int,      Identifer,  Relational, Relational, Sign,       Not,      Final },  /* Init */
+  {  Final ,  Int ,     Final,      Final,      Final,      Final,      Final,    Final },  /* Int */
+  {  Final ,  Identifer,Identifer,  Final,      Final,      Final,      Final,    Final },  /* Identifer */
+  {  Final ,  Final,    Final,      Final,      Relational2,Final,      Final,    Final },  /* Relational */
+  {  Final ,  Final,    Final,      Final,      Relational, Final,      Final,    Final },  /* Relational2 */
+  {  Final ,  Final,    Final,      Final,      NotEq,      Final,      Final,    Final },  /* Not */
+  {  Final ,  Final,    Final,      Final,      Final,      Final,      Final,    Final },  /* NotEq */
+  {  Final ,  Final,    Final,      Final,      Final,      Final,      Final,    Final }   /* Sign */
 };
 
 static CharType charToCharType(int c);
@@ -99,9 +104,11 @@ static CharType charToCharType(int c){
 
   if ((c>='0')&&(c<='9')) return number;
   if (((c>='a')&&(c<='z'))||((c>='A')&&(c<='Z'))) return alpha;
+  if ((c=='>')||(c=='<')) return brackets;
+  if ((c=='=')) return eq;
+  if ((c=='+')||(c=='-')||(c=='*')||(c=='/')||(c==';')||(c=='(')||(c==')')||(c=='{')||(c=='}')||(c=='[')||(c==']')) return sign;
+  if ((c=='!')) return excl;
   // if ((c=='*')||(c=='/')) return joujo;
-  // if ((c=='>')||(c=='<')) return comp;
-  // if (c=='=') return eq;
   // if ((c=='+')||(c=='-') return kagen;
   // if (c==';') return semi_c;
   // if ((c=='(')||(c==')')||(c=='{')||(c=='}')||(c=='[')||(c==']')) return brackets;
@@ -115,25 +122,29 @@ static TokenType whichTokenType(char *s, StateType state){
   printf("whichTokenType() Called!\n");
 
   if (state == Int) return INTEGER;
-  // if (strcmp(s, "define") == 0) return DEFINE;
+  if (strcmp(s, "define") == 0) return DEFINE;
   // if (strcmp(s, "null") == 0) return NIL;
-  // if (strcmp(s, "if") == 0) return IF;
-  // if (strcmp(s, "while") == 0) return WHILE;
+  if (strcmp(s, "if") == 0) return IF;
+  if (strcmp(s, "while") == 0) return WHILE;
+  if (strcmp(s, "func") == 0) return FUNC;
   if (state == Identifer) return IDENT;
-  // if (strcmp(s, "+") == 0) return ADD;
-  // if (strcmp(s, "-") == 0) return SUB;
-  // if (strcmp(s, "*") == 0) return MUL;
-  // if (strcmp(s, "/") == 0) return DIV;
-  // if (strcmp(s, "(") == 0) return L_S_BRACKETS;
-  // if (strcmp(s, ")") == 0) return R_S_BRACKETS;
-  // if (strcmp(s, "{") == 0) return L_M_BRACKETS;
-  // if (strcmp(s, "}") == 0) return R_M_BRACKETS;
-  // if (strcmp(s, "[") == 0) return L_L_BRACKETS;
-  // if (strcmp(s, "]") == 0) return R_L_BRACKETS;
-  // if (strcmp(s, "=") == 0) return EQUAL;
-  // if (strcmp(s, ">") == 0) return B_COMP;
-  // if (strcmp(s, "<") == 0) return L_COMP;
-  // if (strcmp(s, "==") == 0) return E_COMP;
+  if (strcmp(s, "+") == 0) return ADD;
+  if (strcmp(s, "-") == 0) return SUB;
+  if (strcmp(s, "*") == 0) return MUL;
+  if (strcmp(s, "/") == 0) return DIV;
+  if (strcmp(s, "(") == 0) return LPAREN;
+  if (strcmp(s, ")") == 0) return RPAREN;
+  if (strcmp(s, "{") == 0) return LCURLY;
+  if (strcmp(s, "}") == 0) return RCURLY;
+  if (strcmp(s, "[") == 0) return LSQUARE;
+  if (strcmp(s, "]") == 0) return RSQUARE;
+  if (strcmp(s, "=") == 0) return EQUAL;
+  if (strcmp(s, ">") == 0) return GREATER;
+  if (strcmp(s, "<") == 0) return LESS;
+  if (strcmp(s, ">=") == 0) return EQGREATER;
+  if (strcmp(s, "<=") == 0) return EQLESS;
+  if (strcmp(s, "!=") == 0) return NEQUAL;
+  if (strcmp(s, "==") == 0) return EQUAL2;
   // if (strcmp(s, ":") == 0) return COLON;
-  // if (strcmp(s, ";") == 0) return SEMI_C;
+  if (strcmp(s, ";") == 0) return SEMICOLON;
 }

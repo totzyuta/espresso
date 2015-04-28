@@ -1,0 +1,16 @@
+define array[3];
+define a;
+define i;
+
+func reset_array() {
+  i = 0;
+  while (i<3) { 
+    array[i] = 0;
+    i = i + 1
+  }
+  return 1;
+}
+
+if (reset_array()==1) {
+  array[1]=1;
+}

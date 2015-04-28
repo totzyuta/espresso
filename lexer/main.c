@@ -30,10 +30,8 @@ int main(int argc, char *argv[]){
 
   int i=0; // for debugging
   /*--< 字句を順番に取り出す )--*/
-  // while ( (token = nextToken(fp)) != NULL ){
   char c;
   while ( (c=getc(fp)) != EOF) {
-  // while (i<5){
     ungetc(c, fp);
     // debug
     i++;
@@ -61,4 +59,3 @@ static void usage(char *s){
   fprintf(stderr, "Usage: %s < filename >\n",s);
   exit(1);
 }
-
