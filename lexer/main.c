@@ -32,6 +32,16 @@ int main(int argc, char *argv[]){
   /*--< 字句を順番に取り出す )--*/
   char c;
   while ( (c=getc(fp)) != EOF ) {
+
+    // 最後のEOFを先読み
+    if ( (c=getc(fp)) == EOF ) {
+      // 次がEOFだったらプログラムおわり
+      break;
+    }else {
+      // EOFじゃなかったらやっぱ戻す
+      ungetc(c, fp);
+    }
+
     ungetc(c, fp);
     // debug
     i++;
