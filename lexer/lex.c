@@ -3,26 +3,7 @@
 #include <string.h>
 #include "define.h"
 
-/*--< 遷移表の定義 >--*/
-// static StateType table[11][11] = {
-  // Original Program
-  /* delim , number , alpha , kagen , joujo , brackets , eq , comp , colon , semi_c , error */ 
-  // { Final , Int , Ident , Kagen , Joujo , Brackets , Eq1 , Comp , Colon , Semi_c , Error }/* Init */
-  // { Final , Int , Final , Final , Final , Final , Final , Final , Final, Final ,Final }/* Int */
-  // { Final , Ident , Ident  , Final , Final , Final , Final , Final , Final , Final , Final }/* Ident */
-  // { Final , Final , Final , Final , Final , Final , Final , Final , Final , Final , Final }/* Kagen */
-  // { Final , Final , Final , Final , Final , Final , Final , Final , Final , Final , Final }/* Joujo */
-  // { Final , Final , Final , Final , Final , Final , Final , Final , Final , Final , Final }/* Brackets */
-  // { Final , Final , Final , Final , Final , Final , Eq2 , Final , Final , Final , Final }/* Eq1 */
-  // { Final , Final , Final , Final , Final , Final , Final , Final , Final , Final , Final }/* Eq2 */
-  // { Final , Final , Final , Final , Final , Final , Final , Final , Final , Final , Final }/* Comp */
-  // { Final , Final , Final , Final , Final , Final , Final , Final , Final , Final , Final }/* Colon */
-  // { Final , Final , Final , Final , Final , Final , Final , Final , Final , Final , Final }/* Semi_c */
-// };
-
-// New Minimum Lexical Analyzer
 static StateType table[8][8] = {
-  // New minimum program
   /* delim,   number,   alpha,      brackets,   eq,         sign,       excl,     error */
   {  Final,   Int,      Identifer,  Relational, Relational, Sign,       Not,      Final },  /* Init */
   {  Final ,  Int ,     Final,      Final,      Final,      Final,      Final,    Final },  /* Int */
@@ -56,12 +37,17 @@ TokenSt *nextToken(FILE *fp){
   while (1) {
     // ファイルから1文字読み込む
     char c = getc(fp);
+
     // トークンの先頭の文字が空白、改行、タブじゃなくなるまでスキップ！
     while (i==0 && (c==' ' || c=='\n' || c=='\t')) {
       c = getc(fp);
     }
     // 配列の最後に格納
     FIFO[i] = c; 
+
+    // トークンの最初がEOFならNULLを返す
+    if (c == EOF)
+      return NULL;
 
     // debug
     // printf("%d文字目は%cです\n", i, c);
@@ -108,10 +94,6 @@ static CharType charToCharType(int c){
   if ((c=='=')) return eq;
   if ((c=='+')||(c=='-')||(c=='*')||(c=='/')||(c==';')||(c=='(')||(c==')')||(c=='{')||(c=='}')||(c=='[')||(c==']')) return sign;
   if ((c=='!')) return excl;
-  // if ((c=='*')||(c=='/')) return joujo;
-  // if ((c=='+')||(c=='-') return kagen;
-  // if (c==';') return semi_c;
-  // if ((c=='(')||(c==')')||(c=='{')||(c=='}')||(c=='[')||(c==']')) return brackets;
   if((c==' ')||(c=='\n')||(c=='\t')) return delim;
   return error;
 }
@@ -123,7 +105,6 @@ static TokenType whichTokenType(char *s, StateType state){
 
   if (state == Int) return INTEGER;
   if (strcmp(s, "define") == 0) return DEFINE;
-  // if (strcmp(s, "null") == 0) return NIL;
   if (strcmp(s, "if") == 0) return IF;
   if (strcmp(s, "while") == 0) return WHILE;
   if (strcmp(s, "func") == 0) return FUNC;
@@ -146,6 +127,5 @@ static TokenType whichTokenType(char *s, StateType state){
   if (strcmp(s, "<=") == 0) return EQLESS;
   if (strcmp(s, "!=") == 0) return NEQUAL;
   if (strcmp(s, "==") == 0) return EQUAL2;
-  // if (strcmp(s, ":") == 0) return COLON;
   if (strcmp(s, ";") == 0) return SEMICOLON;
 }

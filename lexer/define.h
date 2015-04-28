@@ -9,11 +9,9 @@ typedef enum {
   number,	  /* 1: 数字 0～9				          */
   alpha,    /* 2: 英字 a～z, A～Z              */
   brackets, /* 3: < >                          */
-  // arithem,  /* 算術演算子 +-                */
   eq,       /* 4: =                            */
   sign,     /* 5: + - * / { } [ ] ( ) ;     */
   excl,     /* 6: !                            */
-  // relation, /* 比較　 < >                   */
   error		  /* 7: 未定義文字				            */
 } CharType;
 

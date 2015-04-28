@@ -31,9 +31,8 @@ int main(int argc, char *argv[]){
   // int i=0; // for debugging
   /*--< 字句を順番に取り出す )--*/
   char c;
-  // while ( (c=getc(fp)) != EOF ) {
   while ( feof(fp) == 0 ) {
-    
+ 
     // debug
     // i++;
     // printf("----------------\n", i);
@@ -42,7 +41,11 @@ int main(int argc, char *argv[]){
 
     token = nextToken(fp);
     /*--< 字句の情報を表示する >--*/
-    printf("Type:%02d  String:[%s]\n",token->type, token->string);
+    if (token!=NULL) {
+      printf("Type:%02d  String:[%s]\n",token->type, token->string);
+    }else{
+      printf("NULL!");
+    }
     /*--< 不必要になったら,ちゃんと解放する >--*/
     free(token); 
   }
