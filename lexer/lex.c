@@ -56,24 +56,22 @@ TokenSt *nextToken(FILE *fp){
   while (1) {
     // ファイルから1文字読み込む
     char c = getc(fp);
-    // 配列の最後に格納
-    if (c!=' ' && c!='\n' && c!='\t') {
-      FIFO[i] = c; 
-    }else {
-      FIFO[i] = '\0';
-      break;
+    // トークンの先頭の文字が空白、改行、タブじゃなくなるまでスキップ！
+    while (i==0 && (c==' ' || c=='\n' || c=='\t')) {
+      c = getc(fp);
     }
+    // 配列の最後に格納
+    FIFO[i] = c; 
     // debug
     printf("%d文字目は%cです\n", i, c);
-    // debug
-    // printf("Input Character: %c \n", c);
     // tableをもとに次の状態に遷移
     nstate = table[state][charToCharType(c)];
     // 終了状態はStateTypeのenumで7
-    if (nstate==7) {
+    if (nstate==8) {
       // 読み込み終了前処理
-      i++;
+      // i++;
       FIFO[i]='\0';
+      ungetc(c, fp);
       break;
     }
     // 状態を更新
@@ -100,7 +98,7 @@ TokenSt *nextToken(FILE *fp){
 // Ex. cが3のときはCharTypeのうちnumberを返すので、数値だとnumberは1を表す
 static CharType charToCharType(int c){
   // debug
-  printf("charToCharType() Called! Argument: %d \n", c);
+  // printf("charToCharType() Called! Argument: %d \n", c);
 
   if ((c>='0')&&(c<='9')) return number;
   if (((c>='a')&&(c<='z'))||((c>='A')&&(c<='Z'))) return alpha;
@@ -119,7 +117,7 @@ static CharType charToCharType(int c){
 /*--< (トークンの)文字列と直前の状態を入力とし,トークンの種類を返す関数 >--*/
 static TokenType whichTokenType(char *s, StateType state){
   // debug
-  printf("whichTokenType() Called!\n");
+  // printf("whichTokenType() Called!\n");
 
   if (state == Int) return INTEGER;
   if (strcmp(s, "define") == 0) return DEFINE;

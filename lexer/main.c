@@ -31,7 +31,7 @@ int main(int argc, char *argv[]){
   int i=0; // for debugging
   /*--< 字句を順番に取り出す )--*/
   char c;
-  while ( (c=getc(fp)) != EOF) {
+  while ( (c=getc(fp)) != EOF ) {
     ungetc(c, fp);
     // debug
     i++;

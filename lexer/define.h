@@ -19,17 +19,15 @@ typedef enum {
 
 /*--< 状態のタイプ >--*/
 typedef enum {
-  Init,           /*初期状態*/
-  Int,            /*数状態*/
-  Identifer,      /*識別子状態*/
-  // Arithmetic,    /*算術演算子状態*/
-  Relational,     /*比較演算子*/
-  Relational2,    /*比較演算子(NotEqual)*/
-  Not,            /*Not状態*/
-  NotEq,          /*不等号状態*/
-  Sign,           /*記号状態*/
-  // Equal,         /*等号状態*/
-  Final           /*終了状態*/
+  Init,           /*0:初期状態*/
+  Int,            /*1:数状態*/
+  Identifer,      /*2:識別子状態*/
+  Relational,     /*3:比較演算子*/
+  Relational2,    /*4:比較演算子(NotEqual)*/
+  Not,            /*5:Not状態*/
+  NotEq,          /*6:不等号状態*/
+  Sign,           /*7: 記号状態*/
+  Final           /*8: 終了状態*/
 } StateType;
 
 /*--<トークンのタイプ >--*/

@@ -2,7 +2,7 @@ define array[3];
 define a;
 define i;
 
-func reset_array() {
+func resetarray() {
   i = 0;
   while (i<3) { 
     array[i] = 0;
@@ -11,6 +11,6 @@ func reset_array() {
   return 1;
 }
 
-if (reset_array()==1) {
+if (resetarray()==1) {
   array[1]=1;
 }
