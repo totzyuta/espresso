@@ -31,14 +31,14 @@ static int orderMatrix[][5] {
 // TokenTypeとOpeTypeがちょっと違うのでそこの変換をする関数
 // この関数もoparser.cの中でしか使わないのでstatic
 // TODO: Fix for my define.h
-static OneType typeToOneType(TokenType Type)
+static OpeType typeToOpeType(TokenType Type)
 {
 	if((Type == SUM)||(Type == SUB)) return ot_PlusMinus;
-  	else if((Type == MUL)||(Type == DIV)) return ot_MultiDiv;
-  	else if(Type == LPAREN) return ot_LPar;
-  	else if(Type == RPAREN) return ot_RPar;
-  	else if((Type == ENN) return ot_Enn;
-  	else return error;
+  else if((Type == MUL)||(Type == DIV)) return ot_MultiDiv;
+  else if(Type == LPAREN) return ot_LPar;
+  else if(Type == RPAREN) return ot_RPar;
+  else if(Type == DOLLAR) return ot_Dollar;
+  else return error;
 };
 
 
@@ -84,6 +84,8 @@ void push(int S, Node *n) {
   else {
     Stack[S][Sptr[S]] = n;
     Sptr[S] = Sptr[S] + 1; 
+    // debug
+    printf("Pushed '%s' to stack[%d]", n->token->string, S);
   }
 }
 
@@ -92,6 +94,8 @@ Node *pop(int S) {
   if (Sptr[S]>=MaxStack) stackError(1); // Error Handling
   else {
     Sptr[S] = Sptr[S] - 1;
+    // debug
+    printf("Popped from stack[%d]", S);
     return Stack[S][Sptr[S]];
 }
 
@@ -114,11 +118,11 @@ Node* Top() {
 int Check(Node *Operator){
   Node *N;
   Node *topNode;
-  OneType order;
+  OpeType order;
 
   topNode = Top();
-  order = orderMatrix[ typeToOneType(topNode->token->type) ]
-                     [ typeToOneType(Operator->token->type) ];
+  order = orderMatrix[ typeToOpeType(topNode->token->type) ]
+                     [ typeToOpeType(Operator->token->type) ];
 
   // $$の組み合わせ=endなら終了 
   if (order == 5) return 1; /* 算術式解析の終了 */
@@ -132,10 +136,11 @@ int Check(Node *Operator){
   if (Sptr[1]==0 || order == -1){
     push(1,Operator);
     return 0; /* 未終了 */
-  } else  if (typeToOneType(topNode->token->type)= ot_LPar ) {
+  } else  if (typeToOpeType(topNode->token->type)= ot_LPar ) {
     pop(1)
     return 0; /* 未終了 */
   } else {
+    // operatorの優先順位が>のとき
     N=pop(1);
     N->left=pop(0);
     N->right=pop(0);
@@ -148,34 +153,37 @@ int Check(Node *Operator){
 Node *Oparser(FILE *fp){
   TokenSt *token;
   Node *node;
-  int final;  /* 終了判定用 */
-
-  /*--< 終了状態ではない（＝０） >--*/
-  final = 0;
-
-  /*--< スタックポインタを初期化する >--*/
+  int final;  // 終了判定用
+  final = 0; // 未終了状態
+  // スタックポインタの初期化
   Sptr[0] = Sptr[1] = 0;
+  // 最初に$をでっちあげてstack[1]に突っ込む
+  dollarPoint = '$';
+  push(1,*dollarPoint);  
 
-  < ＄をでっちあげる >
-      push(1,$);    //< それを Stack[1]に積む >
-
-  /* 終了状態になるまで繰り返す */
+  // 終了状態になるまで繰り返す
   while (final == 0){
 
-    入力 := 字句入力; {１字句入力し，NodePointer型の値にして返す．}
+    // 入力 := 字句入力; {１字句入力し，NodePointer型の値にして返す．}
+    token = nextToken(fp);
+    node->token = token;
 
-    if ( 算術式に含まれない文字（セミコロンなど）であった ) {
-
-      < 今の字句は読まなかったことにする > 
-      < その代わりに＄を読んだことにする >
-
+    // 算術式に含まれていないセミコロンなどの文字であったとき
+    if (typeToOpeType(token->type)==error) {
+      // < 今の字句は読まなかったことにする > 
+      ungetToken();
+      // < その代わりに＄を読んだことにする >
+      push(1,*dollarPoint);  
     }
 
-    if ( その字句が数値や識別子であった ) {
-      push(0, 入力);
+    // メインのpushのとこ
+    // その字句が数値や識別子であったとき
+    if (token->type==INTEGER || token->type==IDENT) {
+      push(0, token->string);
     } else {
-      final = Check(入力);
+      final = Check(node);
     }
+
   }
   return Stack[0][0];
 }
