@@ -143,3 +143,40 @@ int Check(Node *Operator){
     return check(Operator); // 再帰的処理で再び行列を参照して調べる
   }
 }
+
+// 算術式の解析を行う関数
+Node *Oparser(FILE *fp){
+  TokenSt *token;
+  Node *node;
+  int final;  /* 終了判定用 */
+
+  /*--< 終了状態ではない（＝０） >--*/
+  final = 0;
+
+  /*--< スタックポインタを初期化する >--*/
+  Sptr[0] = Sptr[1] = 0;
+
+  < ＄をでっちあげる >
+      push(1,$);    //< それを Stack[1]に積む >
+
+  /* 終了状態になるまで繰り返す */
+  while (final == 0){
+
+    入力 := 字句入力; {１字句入力し，NodePointer型の値にして返す．}
+
+    if ( 算術式に含まれない文字（セミコロンなど）であった ) {
+
+      < 今の字句は読まなかったことにする > 
+      < その代わりに＄を読んだことにする >
+
+    }
+
+    if ( その字句が数値や識別子であった ) {
+      push(0, 入力);
+    } else {
+      final = Check(入力);
+    }
+  }
+  return Stack[0][0];
+}
+
