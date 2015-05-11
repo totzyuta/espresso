@@ -60,3 +60,36 @@ typedef struct node {
   struct node *left;
   struct node *right;
 } Node;
+
+
+/*
+ * push,pop関数を実装
+ */
+
+static Node *Stack[2][MaxStack];
+static int Sptr[2];
+
+void stackError(n) {
+  if(n==0)
+    fprintf(stderr, "Stack Overflow\n");
+  if(n==1)
+    fprintf(stderr, "Stack Underflow\n");
+  exit(1);
+}
+
+// Node型の変数をStack Sに積む
+void push(int S, Node *n) {
+  if (Sptr[S]>=MaxStack) stackError(0); // Error Handling
+  else {
+    Stack[S][Sptr[S]] = n;
+    Sptr[S] = Sptr[S] + 1; 
+  }
+}
+
+// Stack Sをpopする
+Node *pop(int S) {
+  if (Sptr[S]>=MaxStack) stackError(1); // Error Handling
+  else {
+    Sptr[S] = Sptr[S] - 1;
+    return Stack[S][Sptr[S]];
+}
