@@ -1,23 +1,21 @@
-// 0:演算子用, 1:数値・識別子用
+#include <stdio.h>
+#include <stdlib.h>	/* malloc() を使う時に必要 */
+#include <string.h>
+#include "define.h"
+
+TokenSt *nextToken(FILE *fp);
+void ungetToken(void);
+
+// 0:数値・識別子, 1:演算子
 static Node *Stack[2][MaxStack];
 static int Sptr[2];
-
-// enum型で演算子の順位関係にナンバーを振っておく
-typedef enum {
-  ot_PlusMinus, // +, - 
-  ot_MultDiv,   // *, / 
-  ot_LPar,      // (  
-  ot_RPar,      // )  
-  ot_Dollar     // $  
-} OpeType;
-
 
 /* 演算子順位行列 */
 // >:1  <:-1  =:0  error:9  end:5
 // OpeTypeが縦軸、横軸にそれぞれ対応する
 // TODO: Make table by comments
 // TODO: ASK why the first number is empty
-static int orderMatrix[][5] {
+static int orderMatrix[7][7] = {
   { 1,-1,-1, 1,-1, 1, 1},
   { 1, 1,-1, 1,-1, 1, 1},
   {-1,-1,-1, 0,-1, 9, 9},
@@ -32,7 +30,7 @@ static int orderMatrix[][5] {
 // この関数もoparser.cの中でしか使わないのでstatic
 // TODO: Fix for my define.h
 static OpeType typeToOpeType(TokenType Type) {
-	if((Type == SUM)||(Type == SUB)) return ot_PlusMinus;
+	if((Type == ADD)||(Type == SUB)) return ot_PlusMinus;
   else if((Type == MUL)||(Type == DIV)) return ot_MultiDiv;
   else if(Type == LPAREN) return ot_LPar;
   else if(Type == RPAREN) return ot_RPar;
@@ -68,6 +66,7 @@ Node *pop(int S) {
     // debug
     printf("Popped from stack[%d]", S);
     return Stack[S][Sptr[S]];
+  }
 }
 
 
@@ -76,7 +75,7 @@ Node *pop(int S) {
 // TODO: ASK ここのアスタリスクについて
 // Node *Top() {
 Node* Top() {
-  if (Sptr[S]>=MaxStack) stackError(1); // Error Handling
+  if (Sptr[1]>=MaxStack) stackError(1); // Error Handling
   else return Stack[1][Sptr[1]-1]; 
 }
 
@@ -104,8 +103,8 @@ int Check(Node *Operator){
   if (Sptr[1]==0 || order == -1){
     push(1,Operator);
     return 0; /* 未終了 */
-  } else  if (typeToOpeType(topNode->token->type)= ot_LPar ) {
-    pop(1)
+  } else  if (typeToOpeType(topNode->token->type) == ot_LPar ) {
+    pop(1);
     return 0; /* 未終了 */
   } else {
     // operatorの優先順位が>のとき
@@ -113,7 +112,7 @@ int Check(Node *Operator){
     N->left=pop(0);
     N->right=pop(0);
     push(0,N);
-    return check(Operator); // 再帰的処理で再び行列を参照して調べる
+    return Check(Operator); // 再帰的処理で再び行列を参照して調べる
   }
 }
 
@@ -127,8 +126,11 @@ Node *Oparser(FILE *fp){
   // スタックポインタの初期化
   Sptr[0] = Sptr[1] = 0;
   // 最初に$をでっちあげてstack[1]に突っ込む
-  dollarPoint = '$';
-  push(1,*dollarPoint);  
+  Node *dollarNode; 
+  TokenSt *dollarToken;
+  strcpy(dollarToken->string, "$");
+  dollarNode->token = dollarToken;
+  push(1, dollarNode);  
 
   // 終了状態になるまで繰り返す
   while (final == 0){
@@ -142,13 +144,13 @@ Node *Oparser(FILE *fp){
       // < 今の字句は読まなかったことにする > 
       ungetToken();
       // < その代わりに＄を読んだことにする >
-      push(1,*dollarPoint);  
+      push(1, dollarNode);  
     }
 
     // メインのpushのとこ
     // その字句が数値や識別子であったとき
     if (token->type==INTEGER || token->type==IDENT) {
-      push(0, token->string);
+      push(0, node);
     } else {
       final = Check(node);
     }
