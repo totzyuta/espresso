@@ -3,6 +3,8 @@
 #include <string.h>
 #include "define.h"
 
+int flag;
+
 // oparser.cで使用
 // 1字句余計に読み込んでいるかどうかを覚えておくための関数
 void ungetToken(void) {

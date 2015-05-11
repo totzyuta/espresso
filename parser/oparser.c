@@ -1,7 +1,6 @@
-
-/*
- * 演算子順位行列の作成
- */
+// 0:演算子用, 1:数値・識別子用
+static Node *Stack[2][MaxStack];
+static int Sptr[2];
 
 // enum型で演算子の順位関係にナンバーを振っておく
 typedef enum {
@@ -19,20 +18,20 @@ typedef enum {
 // TODO: Make table by comments
 // TODO: ASK why the first number is empty
 static int orderMatrix[][5] {
-  {1,-1,-1,1,-1,1,1},
-  {1,1,-1,1,-1,1,1},
-  {-1,-1,-1,0,-1,9,9},
-  {1,1,9,1,1,1,1},
-  {-1,-1,-1,9,-1,0,9},
-  {1,1,9,1,9,1,1},
-  {-1,-1,-1,9,-1,9,5}
+  { 1,-1,-1, 1,-1, 1, 1},
+  { 1, 1,-1, 1,-1, 1, 1},
+  {-1,-1,-1, 0,-1, 9, 9},
+  { 1, 1, 9, 1, 1, 1, 1},
+  {-1,-1,-1, 9,-1, 0, 9},
+  { 1, 1, 9, 1, 9, 1, 1},
+  {-1,-1,-1, 9,-1, 9, 5}
 };
+
 
 // TokenTypeとOpeTypeがちょっと違うのでそこの変換をする関数
 // この関数もoparser.cの中でしか使わないのでstatic
 // TODO: Fix for my define.h
-static OpeType typeToOpeType(TokenType Type)
-{
+static OpeType typeToOpeType(TokenType Type) {
 	if((Type == SUM)||(Type == SUB)) return ot_PlusMinus;
   else if((Type == MUL)||(Type == DIV)) return ot_MultiDiv;
   else if(Type == LPAREN) return ot_LPar;
@@ -41,34 +40,6 @@ static OpeType typeToOpeType(TokenType Type)
   else return error;
 };
 
-
-/*
- * 構文木のデータ構造を定義
- */
-
-// TODO: define.sで重複して定義されているのでどちらかにまとめる
-
-/*--< トークンを格納する構造体 >--*/
-typedef struct {
-  char 		string[TOKENMAX];	/* トークンの文字列 */
-  TokenType	type;			/* トークンのタイプをすべて保持してる
-                         define.h:31 で定義 */
-} TokenSt;
-
-typedef struct node {
-  TokenSt *token;              
-  struct node *left;
-  struct node *right;
-} Node;
-
-
-/*
- * push,pop関数を実装
- */
-
-// 0:演算子用, 1:数値・識別子用
-static Node *Stack[2][MaxStack];
-static int Sptr[2];
 
 void stackError(n) {
   if(n==0)
@@ -99,9 +70,6 @@ Node *pop(int S) {
     return Stack[S][Sptr[S]];
 }
 
-/*
- * Top,Check関数を実装
- */
 
 // 演算子スタックの一番上のデータの優先順位を返す
 // @return [pointer] Nodeのポインタ
@@ -149,6 +117,7 @@ int Check(Node *Operator){
   }
 }
 
+
 // 算術式の解析を行う関数
 Node *Oparser(FILE *fp){
   TokenSt *token;
@@ -187,4 +156,3 @@ Node *Oparser(FILE *fp){
   }
   return Stack[0][0];
 }
-
