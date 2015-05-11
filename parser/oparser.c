@@ -66,6 +66,7 @@ typedef struct node {
  * push,pop関数を実装
  */
 
+// 0:演算子用, 1:数値・識別子用
 static Node *Stack[2][MaxStack];
 static int Sptr[2];
 
@@ -92,4 +93,53 @@ Node *pop(int S) {
   else {
     Sptr[S] = Sptr[S] - 1;
     return Stack[S][Sptr[S]];
+}
+
+/*
+ * Top,Check関数を実装
+ */
+
+// 演算子スタックの一番上のデータの優先順位を返す
+// @return [pointer] Nodeのポインタ
+// TODO: ASK ここのアスタリスクについて
+// Node *Top() {
+Node* Top() {
+  if (Sptr[S]>=MaxStack) stackError(1); // Error Handling
+  else return Stack[1][Sptr[1]-1]; 
+}
+
+// TODO: 意味がよくわからん
+// 返り値は算術式の解析が終了したかどうかを返す
+// @return [int] 0:未終了,1:終了 
+int Check(Node *Operator){
+  Node *N;
+  Node *topNode;
+  OneType order;
+
+  topNode = Top();
+  order = orderMatrix[ typeToOneType(topNode->token->type) ]
+                     [ typeToOneType(Operator->token->type) ];
+
+  // $$の組み合わせ=endなら終了 
+  if (order == 5) return 1; /* 算術式解析の終了 */
+
+  // errorの組み合わせなら終了
+  if (order == 9){
+    // その字は読まなかったことに
+    return 1; /* 算術式解析の終了 */
+  }
+
+  if (Sptr[1]==0 || order == -1){
+    push(1,Operator);
+    return 0; /* 未終了 */
+  } else  if (typeToOneType(topNode->token->type)= ot_LPar ) {
+    pop(1)
+    return 0; /* 未終了 */
+  } else {
+    N=pop(1);
+    N->left=pop(0);
+    N->right=pop(0);
+    push(0,N);
+    return check(Operator); // 再帰的処理で再び行列を参照して調べる
+  }
 }
