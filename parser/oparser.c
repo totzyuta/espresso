@@ -1,3 +1,8 @@
+
+/*
+ * 演算子順位行列の作成
+ */
+
 // enum型で演算子の順位関係にナンバーを振っておく
 typedef enum {
   ot_PlusMinus, // +, - 
@@ -35,3 +40,23 @@ static OneType typeToOneType(TokenType Type)
   	else if((Type == ENN) return ot_Enn;
   	else return error;
 };
+
+
+/*
+ * 構文木のデータ構造を定義
+ */
+
+// TODO: define.sで重複して定義されているのでどちらかにまとめる
+
+/*--< トークンを格納する構造体 >--*/
+typedef struct {
+  char 		string[TOKENMAX];	/* トークンの文字列 */
+  TokenType	type;			/* トークンのタイプをすべて保持してる
+                         define.h:31 で定義 */
+} TokenSt;
+
+typedef struct node {
+  TokenSt *token;              
+  struct node *left;
+  struct node *right;
+} Node;
