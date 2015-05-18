@@ -35,7 +35,7 @@ static OpeType typeToOpeType(TokenType Type) {
   else if(Type == LPAREN) return ot_LPar;
   else if(Type == RPAREN) return ot_RPar;
   else if(Type == DOLLAR) return ot_Dollar;
-  else return error;
+  else return ot_error;
 };
 
 
@@ -140,7 +140,7 @@ Node *Oparser(FILE *fp){
     node->token = token;
 
     // 算術式に含まれていないセミコロンなどの文字であったとき
-    if (typeToOpeType(token->type)==error) {
+    if (typeToOpeType(token->type)==ot_error) {
       // < 今の字句は読まなかったことにする > 
       ungetToken();
       // < その代わりに＄を読んだことにする >

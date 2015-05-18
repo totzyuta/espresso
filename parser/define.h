@@ -68,7 +68,8 @@ typedef enum {
   ot_RPar,      /*  )     */
   ot_Lsqu,      /*  [     */
   ot_Rsqu,      /*  ]     */
-  ot_Dollar
+  ot_Dollar,
+  ot_error
 } OpeType;
 
 /*--< トークンを格納する構造体 >--*/
