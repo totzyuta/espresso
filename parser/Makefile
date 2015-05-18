@@ -1,10 +1,10 @@
 CC	      = gcc
-CFLAGS        = -O -Wall
-HDRS	      = define.h
-LDFLAGS	      =
-LIBS	      =
-OBJS	      = main.o lex.o oparser.o
-PROGRAM	      = oparser
+CFLAGS    = -O -Wall
+HDRS	    = define.h
+LDFLAGS	  =
+LIBS	    =
+OBJS	    = main.o lex.o oparser.o
+PROGRAM	  = oparser
 
 #all:		$(PROGRAM)
 

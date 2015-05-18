@@ -30,8 +30,8 @@ static int orderMatrix[7][7] = {
 // この関数もoparser.cの中でしか使わないのでstatic
 // TODO: Fix for my define.h
 static OpeType typeToOpeType(TokenType Type) {
-	if((Type == ADD)||(Type == SUB)) return ot_PlusMinus;
-  else if((Type == MUL)||(Type == DIV)) return ot_MultiDiv;
+	if( (Type == ADD) || (Type == SUB) ) return ot_PlusMinus;
+  else if( (Type == MUL) || (Type == DIV) ) return ot_MultiDiv;
   else if(Type == LPAREN) return ot_LPar;
   else if(Type == RPAREN) return ot_RPar;
   else if(Type == DOLLAR) return ot_Dollar;
@@ -53,17 +53,19 @@ void push(int S, Node *n) {
   else {
     Stack[S][Sptr[S]] = n;
     Sptr[S] = Sptr[S] + 1; 
-    // debug
-    printf("Pushed '%s' to stack[%d]", n->token->string, S);
+    // DEBUG
+    printf("Pushed '%s' to stack[%d]\n", n->token->string, S);
   }
 }
 
 // Stack Sをpopする
 Node *pop(int S) {
-  if (Sptr[S]>=MaxStack) stackError(1); // Error Handling
-  else {
+  if (Sptr[S]>=MaxStack) {
+    stackError(1); // Error Handling
+    return NULL;
+  }else {
     Sptr[S] = Sptr[S] - 1;
-    // debug
+    // DEBUG
     printf("Popped from stack[%d]", S);
     return Stack[S][Sptr[S]];
   }
@@ -75,14 +77,21 @@ Node *pop(int S) {
 // TODO: ASK ここのアスタリスクについて
 // Node *Top() {
 Node* Top() {
-  if (Sptr[1]>=MaxStack) stackError(1); // Error Handling
-  else return Stack[1][Sptr[1]-1]; 
+  if (Sptr[1]>=MaxStack) {
+    stackError(1); // Error Handling
+    return NULL;
+  }else 
+    return Stack[1][Sptr[1]-1]; 
 }
 
 // TODO: 意味がよくわからん
 // 返り値は算術式の解析が終了したかどうかを返す
 // @return [int] 0:未終了,1:終了 
 int Check(Node *Operator){
+  // DEBUG
+  printf("Checking if ends...");
+  printf("Operator->token->type: %d", Operator->token->type);
+
   Node *N;
   Node *topNode;
   OpeType order;
@@ -119,31 +128,41 @@ int Check(Node *Operator){
 
 // 算術式の解析を行う関数
 Node *Oparser(FILE *fp){
+  // DEBUG
+  printf("Oparser() called!\n");
+
   TokenSt *token;
   Node *node;
+  node = (Node *)malloc(sizeof(Node));
+  node->token = (TokenSt *)malloc(sizeof(TokenSt));
   int final;  // 終了判定用
   final = 0; // 未終了状態
   // スタックポインタの初期化
   Sptr[0] = Sptr[1] = 0;
-  // 最初に$をでっちあげてstack[1]に突っ込む
-  Node *dollarNode; 
-  TokenSt *dollarToken;
-  strcpy(dollarToken->string, "$");
-  dollarNode->token = dollarToken;
+
+  // 最初に$をstack[1]に突っ込む
+  Node *dollarNode;
+  dollarNode = (Node *)malloc(sizeof(Node));
+  dollarNode->token = (TokenSt *)malloc(sizeof(TokenSt));
+  dollarNode->token->type = DOLLAR;
+  dollarNode->token->string[0] = '$';
+  dollarNode->token->string[1] = '\0';
   push(1, dollarNode);  
 
   // 終了状態になるまで繰り返す
   while (final == 0){
 
     // 入力 := 字句入力; {１字句入力し，NodePointer型の値にして返す．}
-    token = nextToken(fp);
-    node->token = token;
+    node->token = nextToken(fp);
+
+    // DEBUG
+    printf("node->token: %d, %s\n", node->token->type, node->token->string);
 
     // 算術式に含まれていないセミコロンなどの文字であったとき
     if (typeToOpeType(token->type)==ot_error) {
-      // < 今の字句は読まなかったことにする > 
+      // 今の字句は読まなかったことにする 
       ungetToken();
-      // < その代わりに＄を読んだことにする >
+      // その代わりに＄を読んだことにする
       push(1, dollarNode);  
     }
 
@@ -152,6 +171,7 @@ Node *Oparser(FILE *fp){
     if (token->type==INTEGER || token->type==IDENT) {
       push(0, node);
     } else {
+      // 終了なら1, 未終了なら0が格納される
       final = Check(node);
     }
 

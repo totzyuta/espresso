@@ -3,7 +3,7 @@
 #include <string.h>
 #include "define.h"
 
-int flag;
+int flag=0;
 
 // oparser.cで使用
 // 1字句余計に読み込んでいるかどうかを覚えておくための関数
@@ -30,8 +30,8 @@ static TokenType whichTokenType(char *s, StateType state);
 static TokenSt *previous; 
 
 TokenSt *nextToken(FILE *fp){
-  // debug
-  // printf("nextToken() Called!\n");
+  // DEBUG
+  printf("nextToken() Called!\n");
 
   // 余計に読み込んでいるときは前のトークンを返す
   if (flag == 1) {
@@ -66,12 +66,13 @@ TokenSt *nextToken(FILE *fp){
     if (c == EOF)
       return NULL;
 
-    // debug
-    // printf("%d文字目は%cです\n", i, c);
+    // DEBUG
+    printf("%d文字目は%cです\n", i, c);
     
     // tableをもとに次の状態に遷移
     nstate = table[state][charToCharType(c)];
-    // 終了状態はStateTypeのenumで7
+    printf("nstate:%d\n", nstate);
+    // 終了状態はStateTypeのenumで8
     if (nstate==8) {
       // 読み込み終了前処理
       // i++;
@@ -105,16 +106,30 @@ TokenSt *nextToken(FILE *fp){
 /*--< 文字を入力とし,文字の種類を対応する数字で返す関数 >--*/
 // Ex. cが3のときはCharTypeのうちnumberを返すので、数値だとnumberは1を表す
 static CharType charToCharType(int c){
-  // debug
-  // printf("charToCharType() Called! Argument: %d \n", c);
+  // DEBUG
+  printf("charToCharType() Called! Argument: %d \n", c);
 
-  if ((c>='0')&&(c<='9')) return number;
-  if (((c>='a')&&(c<='z'))||((c>='A')&&(c<='Z'))) return alpha;
-  if ((c=='>')||(c=='<')) return brackets;
-  if ((c=='=')) return eq;
-  if ((c=='+')||(c=='-')||(c=='*')||(c=='/')||(c==';')||(c=='(')||(c==')')||(c=='{')||(c=='}')||(c=='[')||(c==']')) return sign;
-  if ((c=='!')) return excl;
-  if((c==' ')||(c=='\n')||(c=='\t')) return delim;
+  if ( (c>='0') && (c<='9') ) 
+    return number;
+
+  if ( ((c>='a') && (c<='z')) || ((c>='A') && (c<='Z')) ) 
+    return alpha;
+
+  if ( (c=='>') || (c=='<') ) 
+    return brackets;
+
+  if (c=='=') 
+    return eq;
+
+  if ( (c=='+') || (c=='-') || (c=='*') || (c=='/') || (c==';') || (c=='(') || (c==')') || (c=='{') || (c=='}') || (c=='[') || (c==']') ) 
+    return sign;
+
+  if (c=='!') 
+    return excl;
+
+  if((c==' ')||(c=='\n')||(c=='\t')) 
+    return delim;
+
   return error;
 }
 
