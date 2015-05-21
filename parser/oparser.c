@@ -178,3 +178,19 @@ Node *Oparser(FILE *fp){
   }
   return Stack[0][0];
 }
+
+void printTree(Node *node) {
+  if (Node->left != NULL && Node->right != NULL){
+    printTree(node->left);
+    printTree(node->right);
+  }
+  printf("%s", node->token->string);
+}
+void freeTree(Node *node) {
+  if (Node->left != NULL && Node->right != NULL){
+    freeTree(node->left);
+    freeTree(node->right);
+  }
+  free(node->token);
+  free(node);
+}
