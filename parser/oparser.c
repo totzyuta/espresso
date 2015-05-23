@@ -52,7 +52,7 @@ void push(int S, Node *n) {
   if (Sptr[S]>=MaxStack) stackError(0); // Error Handling
   else {
     Stack[S][Sptr[S]] = n;
-    Sptr[S] = Sptr[S] + 1; 
+    Sptr[S] = Sptr[S] + 1;
     // DEBUG
     printf("Pushed '%s' to stack[%d]\n", n->token->string, S);
   }
@@ -80,13 +80,13 @@ Node* Top() {
   if (Sptr[1]>=MaxStack) {
     stackError(1); // Error Handling
     return NULL;
-  }else 
-    return Stack[1][Sptr[1]-1]; 
+  }else
+    return Stack[1][Sptr[1]-1];
 }
 
 // TODO: 意味がよくわからん
 // 返り値は算術式の解析が終了したかどうかを返す
-// @return [int] 0:未終了,1:終了 
+// @return [int] 0:未終了,1:終了
 int Check(Node *Operator){
   // DEBUG
   printf("Checking if ends...");
@@ -100,7 +100,7 @@ int Check(Node *Operator){
   order = orderMatrix[ typeToOpeType(topNode->token->type) ]
                      [ typeToOpeType(Operator->token->type) ];
 
-  // $$の組み合わせ=endなら終了 
+  // $$の組み合わせ=endなら終了
   if (order == 5) return 1; /* 算術式解析の終了 */
 
   // errorの組み合わせなら終了
@@ -147,7 +147,7 @@ Node *Oparser(FILE *fp){
   dollarNode->token->type = DOLLAR;
   dollarNode->token->string[0] = '$';
   dollarNode->token->string[1] = '\0';
-  push(1, dollarNode);  
+  push(1, dollarNode);
 
   // 終了状態になるまで繰り返す
   while (final == 0){
@@ -160,10 +160,10 @@ Node *Oparser(FILE *fp){
 
     // 算術式に含まれていないセミコロンなどの文字であったとき
     if (typeToOpeType(token->type)==ot_error) {
-      // 今の字句は読まなかったことにする 
+      // 今の字句は読まなかったことにする
       ungetToken();
       // その代わりに＄を読んだことにする
-      push(1, dollarNode);  
+      push(1, dollarNode);
     }
 
     // メインのpushのとこ
@@ -180,14 +180,14 @@ Node *Oparser(FILE *fp){
 }
 
 void printTree(Node *node) {
-  if (Node->left != NULL && Node->right != NULL){
+  if (node->left != NULL && node->right != NULL){
     printTree(node->left);
     printTree(node->right);
   }
   printf("%s", node->token->string);
 }
 void freeTree(Node *node) {
-  if (Node->left != NULL && Node->right != NULL){
+  if (node->left != NULL && node->right != NULL){
     freeTree(node->left);
     freeTree(node->right);
   }
