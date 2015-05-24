@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
 
   /*--< ファイル名を指定しないとエラー >--*/
   if (argc != 2 ) usage(argv[0]);
-  
+
   /*--< ファイルをオープンする >--*/
   if ((fp = fopen(argv[1],"r")) == NULL){
     fprintf(stderr,"No such file (%s)\n",argv[1]);
@@ -26,8 +26,6 @@ int main(int argc, char *argv[]){
   }
 
   /*----------------------------------------------------------------------*/
-  // DEBUG
-  printf("parsing IF...\n");
   token = nextToken(fp);                /* まず「if」を読み込む           */
   if (token->type != IF){               /* それが「if」でなければエラー   */
     fprintf(stderr,"Syntax Error\n");
@@ -35,8 +33,6 @@ int main(int argc, char *argv[]){
   }
   free(token);                          /* いらないので解放しておく       */
   /*----------------------------------------------------------------------*/
-  // DEBUG
-  printf("parsing LPAREN...\n");
   token = nextToken(fp);                /* 次に「(」を読み込む            */
   if (token->type != LPAREN){            /* それが左括弧でなければエラー   */
     fprintf(stderr,"Syntax Error\n");
@@ -45,14 +41,16 @@ int main(int argc, char *argv[]){
   free(token);                          /* いらないので解放しておく       */
   /*----------------------------------------------------------------------*/
   // DEBUG
+  printf("---\n");
   printf("parsing Operation...\n");
   /* 次は算術式が入っているはず                                           */
   node = Oparser(fp);                   /* 算術式を読み込み，構造体を返す */
-  //printTree(node);                      /* 構造体の中身を表示する         */
-  //freeTree(node);                       /* 構造体のメモリを解放する       */
+  printTree(node);                      /* 構造体の中身を表示する         */
+  freeTree(node);                       /* 構造体のメモリを解放する       */
   printf("\n");
   /*----------------------------------------------------------------------*/
   // DEBUG
+  printf("---\n");
   printf("parsing '>'...\n");
   token = nextToken(fp);                /* 次に「＞」を読み込む           */
   if (token->type != GREATER){               /* それが「＞｝でなければエラー   */
