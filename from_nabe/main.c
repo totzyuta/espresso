@@ -27,10 +27,13 @@ int main(int argc, char *argv[]){
 
   // Parsing operators and operands
   node = Oparser(fp);  
+  printTree(node);
+  printf("\n");
+  freeTree(node);
 
   fclose(fp);
 
-  printf("Program Ends! Bye :)");
+  // printf("Program Ends! Bye :)");
 
   return 0;
 }

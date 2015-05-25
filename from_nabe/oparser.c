@@ -133,27 +133,28 @@ Node* Oparser(FILE *fp){
       node2 = (Node *)malloc(sizeof(Node));
       node2->token = (TokenSt *)malloc(sizeof(TokenSt));
 
-        node2->token = nextToken(fp);
-        
-        if(node2-> token->type == LSQUARE){
+      node2->token = nextToken(fp);
+      
+      if(node2-> token->type == LSQUARE && node->token->type == IDENT){
+        node = Array(node,fp);
+      }else{
+        printf("error:");
+        ungetToken();
+        exit(1);
+      }
 
-        	node = Array(node,fp);
-        }else{
-            ungetToken();
-        }
       push(0, node);
-      } else { 
+    } else { 
       final = Check(node);
     }
-
     
   }
-if (node->token->type == DOLLAR && tmp != RSQUARE){
-    
+
+  if (node->token->type == DOLLAR && tmp != RSQUARE){
     node->token->type = tmp;
- }
- temp=pop(0);
-  printTree(temp);
+  }
+
+  temp=pop(0);
   return temp;
 }
 

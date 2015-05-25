@@ -67,7 +67,7 @@ TokenSt *nextToken(FILE *fp){
       return NULL;
 
     // DEBUG
-    printf("%d文字目は%cです\n", i, c);
+    // printf("%d文字目は%cです\n", i, c);
     
     // tableをもとに次の状態に遷移
     nstate = table[state][charToCharType(c)];
