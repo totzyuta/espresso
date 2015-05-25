@@ -66,7 +66,7 @@ Node *pop(int S) {
   }else {
     Sptr[S] = Sptr[S] - 1;
     // DEBUG
-    printf("Popped from stack[%d]", S);
+    printf("Popped from stack[%d]\n", S);
     return Stack[S][Sptr[S]];
   }
 }
@@ -89,8 +89,8 @@ Node* Top() {
 // @return [int] 0:未終了,1:終了
 int Check(Node *Operator){
   // DEBUG
-  printf("Checking if ends...");
-  printf("Operator->token->type: %d", Operator->token->type);
+  printf("Checking if ends...\n");
+  printf("Operator->token->type: %d\n", Operator->token->type);
 
   Node *N;
   Node *topNode;
