@@ -34,29 +34,31 @@ typedef enum {
   DEFINE,       /*        define  01  */
   WHILE,	      /* 予約語 while   02  */
   IF,           /* 予約語 if      03  */
-  FUNC,         /* 関数宣言 func  04  */
-  RETURN,       /* 返り血 return  05  */
-  IDENT,	      /* 識別子	       	06  */
-  ADD,		      /* 加算演算子 +	 	07  */
-  SUB,          /* 減算演算子 -   08  */
-  MUL,  	      /* 乗算演算子 *   09  */
-  DIV,          /* 除算演算子 /   10  */
-  EQUAL,        /* 等号   =       11  */
-  GREATER,      /* 大なり >       12  */
-  EQGREATER,    /*        >=      13  */
-  LESS,         /* 小なり <       14  */
-  EQLESS,       /*        <=      15  */
-  NEQUAL,       /*        !=      16  */
-  EQUAL2,       /* 比較  ==       17  */
-  COMMA,        /*コンマ  ,       18  */
-  SEMICOLON,    /*セミコロン ;    19  */
-  LPAREN,       /*        (       20  */
-  RPAREN,       /*        )       21  */
-  LCURLY,       /*        {       22  */
-  RCURLY,       /*        }       23  */
-  LSQUARE,      /*        [       24  */
-  RSQUARE,      /*        ]       25  */
-  ERROR,        /*                26  */ 
+  ELSE,         /* 予約語 else    04  */
+  FUNC,         /* 関数宣言 func  05  */
+  CALL,         /* 関数宣言 call  06  */
+  RETURN,       /* 返り血 return  07  */
+  IDENT,	      /* 識別子	       	08  */
+  ADD,		      /* 加算演算子 +	 	09  */
+  SUB,          /* 減算演算子 -   10  */
+  MUL,  	      /* 乗算演算子 *   11  */
+  DIV,          /* 除算演算子 /   12  */
+  EQUAL,        /* 等号   =       13  */
+  GREATER,      /* 大なり >       14  */
+  EQGREATER,    /*        >=      15  */
+  LESS,         /* 小なり <       16  */
+  EQLESS,       /*        <=      17  */
+  NEQUAL,       /*        !=      18  */
+  EQUAL2,       /* 比較  ==       19  */
+  COMMA,        /*コンマ  ,       20  */
+  SEMICOLON,    /*セミコロン ;    21  */
+  LPAREN,       /*        (       22  */
+  RPAREN,       /*        )       23  */
+  LCURLY,       /*        {       24  */
+  RCURLY,       /*        }       25  */
+  LSQUARE,      /*        [       26  */
+  RSQUARE,      /*        ]       27  */
+  ERROR,        /*                28  */ 
   DOLLAR
 } TokenType;
 
@@ -66,11 +68,19 @@ typedef enum {
   ot_MultiDiv,   /*  *, /  */
   ot_LPar,      /*  (     */
   ot_RPar,      /*  )     */
-  ot_Lsqu,      /*  [     */
-  ot_Rsqu,      /*  ]     */
+//  ot_Lsqu,      /*  [     */
+//  ot_Rsqu,      /*  ]     */
   ot_Dollar,
   ot_error
 } OpeType;
+
+typedef enum {
+  greater,     // >
+  less,        // <
+  equal,       // =
+  uncorrect,   // ×
+  end          // 終了
+} OrderType;
 
 /*--< トークンを格納する構造体 >--*/
 typedef struct {

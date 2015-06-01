@@ -65,13 +65,22 @@ typedef enum {
 /*----演算子の型を列挙----*/
 typedef enum {
   ot_PlusMinus, /*  +, -  */
-  ot_MultDiv,   /*  *, /  */
+  ot_MultiDiv,   /*  *, /  */
   ot_LPar,      /*  (     */
   ot_RPar,      /*  )     */
-  ot_Lsqu,      /*  [     */
-  ot_Rsqu,      /*  ]     */
-  ot_dollar
+//  ot_Lsqu,      /*  [     */
+//  ot_Rsqu,      /*  ]     */
+  ot_Dollar,
+  ot_error
 } OpeType;
+
+typedef enum {
+  greater,     // >
+  less,        // <
+  equal,       // =
+  uncorrect,   // ×
+  end          // 終了
+} OrderType;
 
 /*--< トークンを格納する構造体 >--*/
 typedef struct {

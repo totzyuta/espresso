@@ -3,6 +3,14 @@
 #include <string.h>
 #include "define.h"
 
+int flag=0;
+
+// oparser.cで使用
+// 1字句余計に読み込んでいるかどうかを覚えておくための関数
+void ungetToken(void) {
+  flag = 1;
+}
+
 static StateType table[8][8] = {
   /* delim,   number,   alpha,      brackets,   eq,         sign,       excl,     error */
   {  Final,   Int,      Identifer,  Relational, Relational, Sign,       Not,      Final },  /* Init */
@@ -18,9 +26,18 @@ static StateType table[8][8] = {
 static CharType charToCharType(int c);
 static TokenType whichTokenType(char *s, StateType state);
 
+// 1字句余計に読み込んでいるときに返すトークンを格納する変数
+static TokenSt *previous; 
+
 TokenSt *nextToken(FILE *fp){
-  // debug
+  // DEBUG
   // printf("nextToken() Called!\n");
+
+  // 余計に読み込んでいるときは前のトークンを返す
+  if (flag == 1) {
+    flag = 0;
+    return previous; // L:94で代入
+  }
   
   // FIFO配列全体でトークンになるように
   // 文字を一文字ずつ格納する
@@ -49,12 +66,14 @@ TokenSt *nextToken(FILE *fp){
     if (c == EOF)
       return NULL;
 
-    // debug
+    // DEBUG
     // printf("%d文字目は%cです\n", i, c);
     
     // tableをもとに次の状態に遷移
     nstate = table[state][charToCharType(c)];
-    // 終了状態はStateTypeのenumで7
+    // DEBUG
+    // printf("nstate:%d\n", nstate);
+    // 終了状態はStateTypeのenumで8
     if (nstate==8) {
       // 読み込み終了前処理
       // i++;
@@ -78,6 +97,9 @@ TokenSt *nextToken(FILE *fp){
   strcpy(token->string, FIFO);
   token->type = whichTokenType(token->string, state);
 
+  // 1字句余計に読み込んでいるときに返すトークンを格納する変数
+  previous = token;
+
   return token;
 }
 
@@ -85,16 +107,30 @@ TokenSt *nextToken(FILE *fp){
 /*--< 文字を入力とし,文字の種類を対応する数字で返す関数 >--*/
 // Ex. cが3のときはCharTypeのうちnumberを返すので、数値だとnumberは1を表す
 static CharType charToCharType(int c){
-  // debug
+  // DEBUG
   // printf("charToCharType() Called! Argument: %d \n", c);
 
-  if ((c>='0')&&(c<='9')) return number;
-  if (((c>='a')&&(c<='z'))||((c>='A')&&(c<='Z'))) return alpha;
-  if ((c=='>')||(c=='<')) return brackets;
-  if ((c=='=')) return eq;
-  if ((c=='+')||(c=='-')||(c=='*')||(c=='/')||(c==';')||(c=='(')||(c==')')||(c=='{')||(c=='}')||(c=='[')||(c==']')) return sign;
-  if ((c=='!')) return excl;
-  if((c==' ')||(c=='\n')||(c=='\t')) return delim;
+  if ( (c>='0') && (c<='9') ) 
+    return number;
+
+  if ( ((c>='a') && (c<='z')) || ((c>='A') && (c<='Z')) ) 
+    return alpha;
+
+  if ( (c=='>') || (c=='<') ) 
+    return brackets;
+
+  if (c=='=') 
+    return eq;
+
+  if ( (c=='+') || (c=='-') || (c=='*') || (c=='/') || (c==';') || (c=='(') || (c==')') || (c=='{') || (c=='}') || (c=='[') || (c==']') ) 
+    return sign;
+
+  if (c=='!') 
+    return excl;
+
+  if((c==' ')||(c=='\n')||(c=='\t')) 
+    return delim;
+
   return error;
 }
 

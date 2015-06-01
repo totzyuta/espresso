@@ -31,7 +31,7 @@ static TokenSt *previous;
 
 TokenSt *nextToken(FILE *fp){
   // DEBUG
-  printf("nextToken() Called!\n");
+  // printf("nextToken() Called!\n");
 
   // 余計に読み込んでいるときは前のトークンを返す
   if (flag == 1) {
@@ -67,11 +67,12 @@ TokenSt *nextToken(FILE *fp){
       return NULL;
 
     // DEBUG
-    printf("%d文字目は%cです\n", i, c);
+    // printf("%d文字目は%cです\n", i, c);
     
     // tableをもとに次の状態に遷移
     nstate = table[state][charToCharType(c)];
-    printf("nstate:%d\n", nstate);
+    // DEBUG
+    // printf("nstate:%d\n", nstate);
     // 終了状態はStateTypeのenumで8
     if (nstate==8) {
       // 読み込み終了前処理
@@ -107,7 +108,7 @@ TokenSt *nextToken(FILE *fp){
 // Ex. cが3のときはCharTypeのうちnumberを返すので、数値だとnumberは1を表す
 static CharType charToCharType(int c){
   // DEBUG
-  printf("charToCharType() Called! Argument: %d \n", c);
+  // printf("charToCharType() Called! Argument: %d \n", c);
 
   if ( (c>='0') && (c<='9') ) 
     return number;
@@ -141,8 +142,10 @@ static TokenType whichTokenType(char *s, StateType state){
   if (state == Int) return INTEGER;
   if (strcmp(s, "define") == 0) return DEFINE;
   if (strcmp(s, "if") == 0) return IF;
+  if (strcmp(s, "else") == 0) return ELSE;
   if (strcmp(s, "while") == 0) return WHILE;
   if (strcmp(s, "func") == 0) return FUNC;
+  if (strcmp(s, "call") == 0) return CALL;
   if (strcmp(s, "return") == 0) return RETURN;
   if (state == Identifer) return IDENT;
   if (strcmp(s, "+") == 0) return ADD;
