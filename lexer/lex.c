@@ -106,8 +106,10 @@ static TokenType whichTokenType(char *s, StateType state){
   if (state == Int) return INTEGER;
   if (strcmp(s, "define") == 0) return DEFINE;
   if (strcmp(s, "if") == 0) return IF;
+  if (strcmp(s, "else") == 0) return ELSE;
   if (strcmp(s, "while") == 0) return WHILE;
   if (strcmp(s, "func") == 0) return FUNC;
+  if (strcmp(s, "call") == 0) return CALL;
   if (strcmp(s, "return") == 0) return RETURN;
   if (state == Identifer) return IDENT;
   if (strcmp(s, "+") == 0) return ADD;
