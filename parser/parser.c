@@ -54,6 +54,7 @@ void parse_define(FILE *fp) {
     // 再帰して再び変数宣言部の解析
     parse_define(fp);
   }
+  ungetToken();
 }
 
 // 宣言文の解析
@@ -133,6 +134,7 @@ void parse_statements(FILE *fp) {
 void parse_statement(FILE *fp) {
   error_func_name = "parse_statement";
   printf("文の解析の始まり\n");
+  token = nextToken(fp);
   if(token->type == IDENT){ 
     token = nextToken(fp);
     if(token->type == EQUAL){
@@ -141,13 +143,6 @@ void parse_statement(FILE *fp) {
     }else if(token->type == LSQUARE) {
       ungetToken();
       parse_assign_array(fp); /*後戻り　識別子*/
-    }else if(token->type == LPAREN){
-      ungetToken();
-      parse_func(fp); /*後戻り　識別子*/
-      token = nextToken(fp);
-      if(token->type != SEMICOLON) {
-          parse_error(error_func_name, error_message);
-      }
     }else {
       parse_error(error_func_name, error_message);
     }
@@ -160,6 +155,12 @@ void parse_statement(FILE *fp) {
   }else if(token->type == FUNC) {
     ungetToken();
     parse_define_func(fp);
+  }else if(token->type == FUNC) {
+    ungetToken();
+    parse_define_func(fp);
+  }else if(token->type == CALL) {
+    ungetToken();
+    parse_func(fp);
   }else {
     parse_error(error_func_name, error_message);
   }
