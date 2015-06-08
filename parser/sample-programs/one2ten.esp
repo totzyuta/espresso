@@ -1,0 +1,11 @@
+define array[3];
+define a;
+define i;
+
+func resetArray() {
+  i = 0;
+  while (i<3) {
+    array[i] = 0;
+    i = i + 1;
+  }
+}
