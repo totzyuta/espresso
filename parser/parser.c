@@ -58,10 +58,10 @@ void parse_define(FILE *fp) {
 }
 
 // 宣言文の解析
-// <宣言文> ::= <define <識別子>; | define <配列宣言>:
+// <宣言文> ::= define <識別子>; | define <配列宣言>:
 void parse_define_statement(FILE *fp) {
   error_func_name = "parse_define_statement";
-  printf("宣言部の解析の始まり\n");
+  printf("宣言文の解析の始まり\n");
   token = nextToken(fp);
   if(token->type == DEFINE) {
     token = nextToken(fp);
@@ -75,18 +75,20 @@ void parse_define_statement(FILE *fp) {
       // '['じゃなかったら、変数の宣言がここで完了したことになる
     }else{
       // DEFINEのあとが識別子じゃなかったらエラー
+      error_message = "assign identifier after 'define'";
       parse_error(error_func_name, error_message);
     }
   }else {
     // DEFINEじゃなかったらエラー
+    error_message = "not 'define'";
     parse_error(error_func_name, error_message);
   }
-  token = nextToken(fp);
-  // 宣言文が';'で終わってなかったらエラー
   if(token->type != SEMICOLON) {
+    // 宣言文が';'で終わってなかったらエラー
+    error_message = "define not ends with ';'";
     parse_error(error_func_name, error_message);
   }
-  printf("宣言部の解析の始まり\n");
+  printf("宣言文の解析の始まり\n");
 }
 
 // 配列宣言の解析
@@ -111,7 +113,7 @@ void parse_define_array(FILE *fp) {
     // (配列宣言の最後は';'になるはず)
     parse_define_array(fp);
   }
-  printf("配列宣言の解析の始まり\n");
+  printf("配列宣言の解析のおわり\n");
 }
 
 // 文集合の解析
