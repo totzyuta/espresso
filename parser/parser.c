@@ -36,7 +36,9 @@ TokenSt *token;
 // <プログラム> :== <変数宣言部><文集合>
 void parse_program(FILE *fp) {
   printf("プログラム全体の解析の始まり\n");
+  printf("変数宣言部の解析の始まり\n");
   parse_define(fp);
+  printf("変数宣言部の解析のおわり\n");
   parse_statements(fp);
   printf("プログラム全体の始まり\n");
 }
@@ -45,7 +47,6 @@ void parse_program(FILE *fp) {
 // <変数宣言部> ::= <宣言文> <変数宣言部> | <宣言文>
 void parse_define(FILE *fp) {
   error_func_name = "parse_define";
-  printf("変数宣言部の解析の始まり\n");
   token = nextToken(fp);
   if(token->type == DEFINE) {
     ungetToken();
@@ -53,8 +54,6 @@ void parse_define(FILE *fp) {
     // 再帰して再び変数宣言部の解析
     parse_define(fp);
   }
-  ungetToken();
-  printf("変数宣言部の解析のおわり\n");
 }
 
 // 宣言文の解析
@@ -83,12 +82,13 @@ void parse_define_statement(FILE *fp) {
     error_message = "not 'define'";
     parse_error(error_func_name, error_message);
   }
+
   if(token->type != SEMICOLON) {
     // 宣言文が';'で終わってなかったらエラー
     error_message = "define not ends with ';'";
     parse_error(error_func_name, error_message);
   }
-  printf("宣言文の解析の始まり\n");
+  printf("宣言文の解析のおわり\n");
 }
 
 // 配列宣言の解析
@@ -114,8 +114,6 @@ void parse_define_array(FILE *fp) {
     // [ がでてこなくなるまで '[ INT ]'の解析を再帰
     // (配列宣言の最後は';'になるはず)
     parse_define_array(fp);
-  }else {
-    ungetToken();
   }
   printf("配列宣言の解析のおわり\n");
 }
@@ -127,7 +125,7 @@ void parse_statements(FILE *fp) {
   printf("文集合の解析の始まり\n");
   parse_statement(fp);
   parse_statements(fp);
-  printf("文集合の解析の始まり\n");
+  printf("文集合の解析のおわり\n");
 }
 
 // 文の解析
@@ -500,7 +498,7 @@ void parse_array(FILE *fp) {
 // エラー処理
 void parse_error(char *error_func_name, char *error_message) {
   if (error_message == NULL) {
-    error_message = "sorry, reason undefined...";
+    error_message = "sorry, an unknow error occurs...";
   }
   printf("error in %s: %s\n", error_func_name, error_message);
   exit(1);
