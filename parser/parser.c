@@ -102,16 +102,20 @@ void parse_define_array(FILE *fp) {
     token = nextToken(fp);
     if(token->type != INTEGER) {
       // [ ] の中が整数じゃなかったらエラー
+      error_message = "define arrays not by integer   ex. array[5]";
       parse_error(error_func_name, error_message);
     }
     token = nextToken(fp);
     if(token->type != RSQUARE) {
       // ] でおわっていなければエラー
+      error_message = "not ends with ']' to define array";
       parse_error(error_func_name, error_message);
     }
     // [ がでてこなくなるまで '[ INT ]'の解析を再帰
     // (配列宣言の最後は';'になるはず)
     parse_define_array(fp);
+  }else {
+    ungetToken();
   }
   printf("配列宣言の解析のおわり\n");
 }
