@@ -133,7 +133,6 @@ void parse_statements(FILE *fp) {
 void parse_statement(FILE *fp) {
   error_func_name = "parse_statement";
   printf("文の解析の始まり\n");
-  token = nextToken(fp);
   if(token->type == IDENT){ 
     token = nextToken(fp);
     if(token->type == EQUAL){
@@ -178,38 +177,39 @@ void parse_assign_array(FILE *fp){
     if(token->type == CALL){
       token = nextToken(fp);
       if(token->type == IDENT){
-	ungetToken();
-	parse_func(fp);
-	token = nextToken(fp);
-	if(token->type == SEMICOLON){
-	}else{
-	  parse_error(error_func_name, error_message);
-	}
+        ungetToken();
+        parse_func(fp);
+        token = nextToken(fp);
+        if(token->type == SEMICOLON){
+          // nothing
+        }else{
+          parse_error(error_func_name, error_message);
+        }
       }else{
-	parse_error(error_func_name, error_message);
+        parse_error(error_func_name, error_message);
       }
     }else{
       ungetToken();
       Oparser(fp);
       token = nextToken(fp);
       if(token->type == SEMICOLON){
+        // nothing
       }else{
-	parse_error(error_func_name, error_message);
+        parse_error(error_func_name, error_message);
       }
     }
   }else{
     parse_error(error_func_name, error_message);
   }
   printf("配列代入文の解析の終わり\n");
-
 }
 
 // 代入文の解析
+// 後戻り: <識別子>スキップ
 void parse_assign_value(FILE *fp) {
   printf("parse_assign_value 後戻りで呼び出された\n");
   error_func_name = "parse_assign_value";
   printf("代入文の解析のはじまり\n");
-  token = nextToken(fp);
   if(token->type == EQUAL){
     token = nextToken(fp);
     if(token ->type == CALL){
@@ -226,6 +226,7 @@ void parse_assign_value(FILE *fp) {
       if(token->type != SEMICOLON){
         parse_error(error_func_name, error_message);
       }
+      token = nextToken(fp);
     }
   }else{
     parse_error(error_func_name, error_message);
@@ -291,71 +292,75 @@ void parse_func(FILE *fp) {
 }
 
 // 関数宣言文の解析
+// <関数宣言文> ::= func <識別子>(<引数>) { <文集合> } 
+//                | func <識別子> () { <文集合> }
 void parse_define_func(FILE *fp) {
   int miss = 1;
   error_func_name = "parse_define";
-  printf("ループ文の解析の始まり");
+  printf("関数宣言文の解析の始まり\n");
   token = nextToken(fp);
   if(token->type == FUNC){
     token = nextToken(fp);
     if(token->type == IDENT){
       token = nextToken(fp);
       if(token->type == LPAREN){
-	token = nextToken(fp);
-	if(token->type != RPAREN){  /*空白の場合もあとで記述 */
-	  ungetToken();
-	  parse_argument(fp);
-	  if(token->type == RPAREN){
-	    token = nextToken(fp);
-	    if(token->type == LCURLY){
-	      parse_statements(fp);
-	      token = nextToken(fp);
-	      if(token->type == RCURLY){
-		miss = 0;
-		token = nextToken(fp);
-		if(token->type == ELSE){
-		  miss = 1;
-		  token = nextToken(fp);
-		  if(token->type == LCURLY){
-		    parse_statements(fp);
-		    token = nextToken(fp);
-		    if(token->type == RCURLY){
-		      miss = 0;
-		    }
-		  }
-		}
-	      }
-	    }
-	  }
-	}else{
-	  token = nextToken(fp);
-	  if(token->type == LCURLY){
-	    parse_statements(fp);
-	    token = nextToken(fp);
-	    if(token->type == RCURLY){
-	      miss = 0;
-	      token = nextToken(fp);
-	      if(token->type == ELSE){
-		miss = 1;
-		token = nextToken(fp);
-		if(token->type == LCURLY){
-		  parse_statements(fp);
-		  token = nextToken(fp);
-		  if(token->type == RCURLY){
-		    miss = 0;
-		  }
-		}
-	      }
-	    }
-	  }
-	}
+        token = nextToken(fp);
+        if(token->type != RPAREN){  /*空白の場合もあとで記述 */
+          ungetToken();
+          parse_argument(fp);
+          if(token->type == RPAREN){
+            token = nextToken(fp);
+            if(token->type == LCURLY){
+              parse_statements(fp);
+              token = nextToken(fp);
+              if(token->type == RCURLY){
+                miss = 0;
+                token = nextToken(fp);
+                if(token->type == ELSE){
+                  miss = 1;
+                  token = nextToken(fp);
+                  if(token->type == LCURLY){
+                    parse_statements(fp);
+                    token = nextToken(fp);
+                    if(token->type == RCURLY){
+                      miss = 0;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }else{  // 引数を持たない関数の宣言の場合
+          token = nextToken(fp);
+          if(token->type == LCURLY){
+            token = nextToken(fp);
+            parse_statements(fp); // TODO: HERE!
+            token = nextToken(fp);
+            if(token->type == RCURLY){
+              miss = 0;
+              token = nextToken(fp);
+              if(token->type == ELSE){
+                miss = 1;
+                token = nextToken(fp);
+                if(token->type == LCURLY){
+                  parse_statements(fp);
+                  token = nextToken(fp);
+                  if(token->type == RCURLY){
+                    miss = 0;
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
+
   if(miss == 1){
     parse_error(error_func_name, error_message);
   }
-  printf("関数宣言文の解析の終わり");
+  printf("関数宣言文の解析の終わり\n");
 }
 
 // ループ文の解析
@@ -474,7 +479,7 @@ void parse_array(FILE *fp) {
   /*LSQUARが次のtokenになる*/
   int miss =1;
   error_func_name = "parse_array";
-  printf("配列の解析の始まり");
+  printf("配列の解析の始まり\n");
   token = nextToken(fp);
   if(token->type == IDENT){
     token = nextToken(fp);
@@ -492,7 +497,7 @@ void parse_array(FILE *fp) {
   if(miss == 1){
     parse_error(error_func_name, error_message);
   }
-  printf("配列の解析の終わり");
+  printf("配列の解析の終わり\n");
 }
 
 // エラー処理

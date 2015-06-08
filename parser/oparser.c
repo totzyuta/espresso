@@ -1,196 +1,223 @@
 #include <stdio.h>
-#include <stdlib.h>	/* malloc() を使う時に必要 */
+#include <stdlib.h>
 #include <string.h>
 #include "define.h"
 
-TokenSt *nextToken(FILE *fp);
+TokenSt* nextToken(FILE *fp);
 void ungetToken(void);
-
-// 0:数値・識別子, 1:演算子
+void printTree(Node *node);
+void freeTree(Node *node);
+Node* Array(Node *node, FILE *fp);
 static Node *Stack[2][MaxStack];
-static int Sptr[2];
+static int Sptr[2]={0,0}; 
 
-/* 演算子順位行列 */
-// >:1  <:-1  =:0  error:9  end:5
-// OpeTypeが縦軸、横軸にそれぞれ対応する
-// TODO: Make table by comments
-// TODO: ASK why the first number is empty
-static int orderMatrix[7][7] = {
-  { 1,-1,-1, 1,-1, 1, 1},
-  { 1, 1,-1, 1,-1, 1, 1},
-  {-1,-1,-1, 0,-1, 9, 9},
-  { 1, 1, 9, 1, 1, 1, 1},
-  {-1,-1,-1, 9,-1, 0, 9},
-  { 1, 1, 9, 1, 9, 1, 1},
-  {-1,-1,-1, 9,-1, 9, 5}
+static OrderType orderMatrix[][5] = {
+  // row:TopNode, column:Operator
+/* ot_PlusMinus, ot_MultiDiv, ot_Lpar,  ot_Rpar,  ot_Dollar, ot_error */
+  {greater,      less,        less,     greater,  greater             }, // ot_PlusMinus
+  {greater,      greater,     less,     greater,  greater             }, // ot_MultiDiv
+  {less,         less,        less,     equal,    uncorrect           }, // ot_Lpar 
+  {greater,      greater,     uncorrect,greater,  greater             }, // ot_Rpar
+  {less,         less,        less,     uncorrect,end                 }, // ;ot_Dollar
 };
 
-
-// TokenTypeとOpeTypeがちょっと違うのでそこの変換をする関数
-// この関数もoparser.cの中でしか使わないのでstatic
-// TODO: Fix for my define.h
-static OpeType typeToOpeType(TokenType Type) {
-	if( (Type == ADD) || (Type == SUB) ) return ot_PlusMinus;
-  else if( (Type == MUL) || (Type == DIV) ) return ot_MultiDiv;
-  else if(Type == LPAREN) return ot_LPar;
-  else if(Type == RPAREN) return ot_RPar;
-  else if(Type == DOLLAR) return ot_Dollar;
-  else return ot_error;
-};
-
-
-void stackError(n) {
-  if(n==0)
-    fprintf(stderr, "Stack Overflow\n");
-  if(n==1)
-    fprintf(stderr, "Stack Underflow\n");
-  exit(1);
+static OpeType typeToOpeType(TokenType type) {
+  if (type == ADD || type == SUB) return ot_PlusMinus;
+  if (type == MUL || type == DIV) return ot_MultiDiv;
+  if (type == LPAREN) return ot_LPar;
+  if (type == RPAREN) return ot_RPar;
+  else return ot_Dollar;
 }
 
-// Node型の変数をStack Sに積む
-void push(int S, Node *n) {
-  if (Sptr[S]>=MaxStack) stackError(0); // Error Handling
-  else {
+void push(int S, Node *n) { 
+  if (Sptr[S] == MaxStack) {
+    fprintf(stderr, "Stack Overflow\n");
+    exit(1);
+  } else {
     Stack[S][Sptr[S]] = n;
     Sptr[S] = Sptr[S] + 1;
-    // DEBUG
-    printf("Pushed '%s' to stack[%d]\n", n->token->string, S);
   }
 }
 
-// Stack Sをpopする
-Node *pop(int S) {
-  if (Sptr[S]>=MaxStack) {
-    stackError(1); // Error Handling
-    return NULL;
-  }else {
+Node* pop(int S) { 
+  if (Sptr[S] == 0) {
+    fprintf(stderr, "Stack Underflow\n");
+    exit(1);
+  } else {
     Sptr[S] = Sptr[S] - 1;
-    // DEBUG
-    printf("Popped from stack[%d]\n", S);
     return Stack[S][Sptr[S]];
   }
 }
 
-
-// 演算子スタックの一番上のデータの優先順位を返す
-// @return [pointer] Nodeのポインタ
-// TODO: ASK ここのアスタリスクについて
-// Node *Top() {
-Node* Top() {
-  if (Sptr[1]>=MaxStack) {
-    stackError(1); // Error Handling
-    return NULL;
-  }else
-    return Stack[1][Sptr[1]-1];
+Node* Top() { 
+  if (Sptr[1] == 0) {
+    fprintf(stderr, "Empty Stack\n");
+    exit(1);
+  } else {
+    return Stack[1][Sptr[1] - 1]; 
+  }
 }
 
-// TODO: 意味がよくわからん
-// 返り値は算術式の解析が終了したかどうかを返す
-// @return [int] 0:未終了,1:終了
-int Check(Node *Operator){
-  // DEBUG
-  printf("Checking if ends...\n");
-  printf("Operator->token->type: %d\n", Operator->token->type);
-
+int Check(Node *Operator) { 
   Node *N;
   Node *topNode;
-  OpeType order;
-
-  topNode = Top();
-  order = orderMatrix[ typeToOpeType(topNode->token->type) ]
-                     [ typeToOpeType(Operator->token->type) ];
-
-  // $$の組み合わせ=endなら終了
-  if (order == 5) return 1; /* 算術式解析の終了 */
-
-  // errorの組み合わせなら終了
-  if (order == 9){
-    // その字は読まなかったことに
-    return 1; /* 算術式解析の終了 */
+  OrderType order;
+  
+  topNode = Top(); 
+  order = orderMatrix[typeToOpeType(topNode->token->type)][typeToOpeType(Operator->token->type)];
+  
+  if (order == end){ 
+    pop(1);
+    return 1; 
   }
 
-  if (Sptr[1]==0 || order == -1){
-    push(1,Operator);
-    return 0; /* 未終了 */
-  } else  if (typeToOpeType(topNode->token->type) == ot_LPar ) {
-    pop(1);
-    return 0; /* 未終了 */
-  } else {
-    // operatorの優先順位が>のとき
-    N=pop(1);
-    N->left=pop(0);
-    N->right=pop(0);
-    push(0,N);
-    return Check(Operator); // 再帰的処理で再び行列を参照して調べる
+  if (order == uncorrect) { 
+    ungetToken();
+    return 1;
+  }
+
+  if (Sptr[1] == 0 || order == less) {
+    push(1, Operator); 
+    return 0; 
+  } else if (topNode->token->type == LPAREN) {  
+    pop(1); 
+    return 0; 
+  } else { 
+    N = pop(1);
+    N->right = pop(0);
+    N->left = pop(0);
+    push(0, N);
+    return Check(Operator); 
   }
 }
 
 
-// 算術式の解析を行う関数
-Node *Oparser(FILE *fp){
-  // DEBUG
-  printf("Oparser() called!\n");
-
+Node* Oparser(FILE *fp){
   TokenSt *token;
-  Node *node;
+  Node *node,*temp,*node2;
+  int final; 
+  TokenType tmp = DOLLAR;
+
+  final = 0;
+
   node = (Node *)malloc(sizeof(Node));
   node->token = (TokenSt *)malloc(sizeof(TokenSt));
-  int final;  // 終了判定用
-  final = 0; // 未終了状態
-  // スタックポインタの初期化
-  Sptr[0] = Sptr[1] = 0;
+  node->token->type = DOLLAR;
+  node->token->string[0] = '$';
+  node->token->string[1] = '\0';
+  Stack[1][Sptr[1]] = node;   
+  Sptr[1] = Sptr[1] + 1;
 
-  // 最初に$をstack[1]に突っ込む
-  Node *dollarNode;
-  dollarNode = (Node *)malloc(sizeof(Node));
-  dollarNode->token = (TokenSt *)malloc(sizeof(TokenSt));
-  dollarNode->token->type = DOLLAR;
-  dollarNode->token->string[0] = '$';
-  dollarNode->token->string[1] = '\0';
-  push(1, dollarNode);
+  while (final == 0) { 
+    token = nextToken(fp);
+    node = (Node *)malloc(sizeof(Node));
+    node->token = token;
+    node->left = NULL;
+    node->right = NULL;
 
-  // 終了状態になるまで繰り返す
-  while (final == 0){
+    if (node->token->type == LCURLY || node->token->type == RCURLY || node->token->type == EQUAL2 ||node->token->type == GREATER ||node->token->type == LESS || node->token->type ==  SEMICOLON || node->token->type == COMMA) {
 
-    // 入力 := 字句入力; {１字句入力し，NodePointer型の値にして返す．}
-    node->token = nextToken(fp);
-
-    // DEBUG
-    printf("node->token: %d, %s\n", node->token->type, node->token->string);
-
-    // 算術式に含まれていないセミコロンなどの文字であったとき
-    if (typeToOpeType(token->type)==ot_error) {
-      // 今の字句は読まなかったことにする
       ungetToken();
-      // その代わりに＄を読んだことにする
-      push(1, dollarNode);
+      tmp = node->token->type;
+      node->token->type = DOLLAR;
+      } 
+
+    if (node->token->type == RSQUARE){
+      
+      tmp = node->token->type;
+      node->token->type = DOLLAR;
     }
 
-    // メインのpushのとこ
-    // その字句が数値や識別子であったとき
-    if (token->type==INTEGER || token->type==IDENT) {
+    if (node->token->type == INTEGER || node->token->type == IDENT) {
+    
+      node2 = (Node *)malloc(sizeof(Node));
+      node2->token = (TokenSt *)malloc(sizeof(TokenSt));
+
+        node2->token = nextToken(fp);
+        
+        if(node2-> token->type == LSQUARE){
+	  if(node->token->type == INTEGER){
+	    printf("error\n");
+	    exit(1);
+	  }
+        	node = Array(node,fp);
+        }else{
+	    ungetToken();
+        }
       push(0, node);
-    } else {
-      // 終了なら1, 未終了なら0が格納される
+      } else { 
       final = Check(node);
     }
 
+    
   }
-  return Stack[0][0];
+if (node->token->type == DOLLAR && tmp != RSQUARE){
+    
+    node->token->type = tmp;
+ }
+ temp=pop(0);
+ return temp;
 }
 
-void printTree(Node *node) {
-  if (node->left != NULL && node->right != NULL){
-    printTree(node->left);
-    printTree(node->right);
-  }
-  printf("%s", node->token->string);
-}
+void printTree(Node *node){
+   if (node->left != NULL || node->right != NULL){
+       printTree(node->left);
+       printTree(node->right);
+   }
+   printf("%s ",node->token->string);
+ }
+
+
 void freeTree(Node *node) {
-  if (node->left != NULL && node->right != NULL){
+  if (node->left != NULL || node->right != NULL) {
     freeTree(node->left);
     freeTree(node->right);
   }
   free(node->token);
   free(node);
+}
+
+Node* Array(Node *node,FILE *fp){
+
+	 TokenSt *token2,*token3; 
+   token2 = nextToken(fp);
+   if(token2->type == INTEGER || token2->type == IDENT ){
+   	    strcat(node->token->string,"[");
+   	    strcat(node->token->string,token2->string);
+        token3 = nextToken(fp);
+        if(token3->type == LSQUARE){
+	  if(token2->type == INTEGER){
+printf("配列の前 整数\n");
+exit(1);
+}
+
+       	  node = Array(node,fp);
+       	  token3 = nextToken(fp);
+       	  if(token3->type == RSQUARE){
+       	    strcat(node->token->string,"]");	
+       	  }
+       	token3 = nextToken(fp);
+       	if(token3->type == LSQUARE){
+       		node = Array(node,fp);
+
+       	}else{
+       		ungetToken();
+       	}
+        }else{
+
+        if(token3->type == RSQUARE){
+           
+        strcat(node->token->string,"]");
+        }
+
+        token3 = nextToken(fp);
+        if(token3->type == LSQUARE){
+       	node = Array(node,fp);
+        }else{
+       	ungetToken();
+       }
+   }
+
+  }
+    return node;        
 }
