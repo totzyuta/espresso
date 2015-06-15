@@ -60,7 +60,7 @@ void parse_define(FILE *fp) {
 }
 
 // 宣言文の解析
-// <宣言文> ::= define <識別子>; | define <配列宣言>:
+// <宣言文> ::= define <識別子>; | define <配列宣言>;
 void parse_define_statement(FILE *fp) {
   error_func_name = "parse_define_statement";
   printf("宣言文の解析の始まり\n");
@@ -122,18 +122,19 @@ void parse_define_array(FILE *fp) {
     if(token->type == LSQUARE){
       token = nextToken(fp);
       if(token->type != INTEGER) {
-      // [ ] の中が整数じゃなかったらエラー
-	error_message = "define arrays not by integer   ex. array[5]";
-	parse_error(error_func_name, error_message);
+        // [ ] の中が整数じゃなかったらエラー
+        error_message = "define arrays not by integer   ex. array[5]";
+        parse_error(error_func_name, error_message);
       }
       token = nextToken(fp);
       if(token->type != RSQUARE) {
-      // ] でおわっていなければエラー
-	error_message = "not ends with ']' to define array";
-	parse_error(error_func_name, error_message);
+        // ] でおわっていなければエラー
+        error_message = "not ends with ']' to define array";
+        parse_error(error_func_name, error_message);
       }
+      token = nextToken(fp);
     }else{
-      ungetToken(); //先読みした文戻す
+      // ungetToken(); //先読みした文戻す
     }
   }
   printf("配列宣言の解析のおわり\n");
