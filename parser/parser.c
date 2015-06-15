@@ -34,7 +34,7 @@ char *error_message;
 TokenSt *token;
 
 // プログラム全体の解析
-// <プログラム> :== <変数宣言部><関数宣言部><文集合>
+// <プログラム> :== <変数宣言部><文集合>
 void parse_program(FILE *fp) {
   printf("プログラム全体の解析の始まり\n");
   printf("変数宣言部の解析の始まり\n");
@@ -116,10 +116,29 @@ void parse_define_array(FILE *fp) {
     }
     // [ がでてこなくなるまで '[ INT ]'の解析を再帰
     // (配列宣言の最後は';'になるはず)
-    parse_define_array(fp);
+    // parse_define_array(fp);
+    //変更箇所
+    token = nextToken(fp);
+    if(token->type == LSQUARE){
+      token = nextToken(fp);
+      if(token->type != INTEGER) {
+      // [ ] の中が整数じゃなかったらエラー
+	error_message = "define arrays not by integer   ex. array[5]";
+	parse_error(error_func_name, error_message);
+      }
+      token = nextToken(fp);
+      if(token->type != RSQUARE) {
+      // ] でおわっていなければエラー
+	error_message = "not ends with ']' to define array";
+	parse_error(error_func_name, error_message);
+      }
+    }else{
+      ungetToken(); //先読みした文戻す
+    }
   }
   printf("配列宣言の解析のおわり\n");
 }
+
 
 // 関数宣言部の解析
 // <関数宣言部> ::= <関数宣言文> <関数宣言部> | <関数宣言文>
@@ -165,7 +184,7 @@ void parse_statements(FILE *fp) {
 }
 
 // 文の解析
-// <文> ::= <代入文> | <ループ文> | <条件分岐文> | <関数>;| break;
+// <文> ::= <代入文> | <ループ文> | <条件分岐文> | <関数宣言文> | <関数>;| break;
 // 後戻り <識別子>飛ばして `=` から
 void parse_statement(FILE *fp) {
   not_statemtnt = 0;
@@ -539,26 +558,49 @@ void parse_relational(FILE *fp) {
 
 // 配列の解析
 void parse_array(FILE *fp) {
-  /*LSQUARが次のtokenになる*/
-  int miss =1;
-  error_func_name = "parse_array";
+  /*LSQUAREが次のtokenになる*/
+  printf("後戻りで呼ばれた\n");
   printf("配列の解析の始まり\n");
+  error_func_name = "parse_array";
   token = nextToken(fp);
-    while(token->type == LSQUARE){
-      miss = 1;
-      parse_value(fp);
-      if(token->type ==RSQUARE){
-        miss = 0;
-        token = nextToken(fp);
+  if(token ->type == LSQUARE){
+    token = nextToken(fp);
+    if(token->type == IDENT|| token->type == INTEGER ){
+      token = nextToken(fp);
+      if(token ->type != RSQUARE){ /*一次元配列の終了へ*/
+	error_message = "one-dimensional array not has RSQUARE";
+	parse_error(error_func_name, error_message);
       }
+      token = nextToken(fp); /*次にRSQUARが存在するか判断*/
+      if(token->type == LSQUARE){
+	token = nextToken(fp);
+	if(token->type == IDENT || token->type == INTEGER){
+	  token = nextToken(fp);
+	  if(token->type == RSQUARE){
+	    /*二次元配列の終了*/
+	  }else{
+	    error_message = "two-dimensional array not has RSQUARE";
+	    parse_error(error_func_name, error_message);
+	  }
+	}else{
+	  error_message = "two-dimensional array not has IDENT or INTEGER";
+	  parse_error(error_func_name, error_message);
+	}
+      }else{
+	ungetToken();
+	/*一次元配列の終了*/
+      }
+    }else{
+	  error_message = "one-dimensional array not has IDENT or INTEGER";
+	  parse_error(error_func_name, error_message);
     }
-
-  ungetToken(); /*Tokenの位置の調整*/
-  if(miss == 1){
+  }else{
+    error_message = "one-dimensional array not has LSQUARE";
     parse_error(error_func_name, error_message);
   }
   printf("配列の解析の終わり\n");
 }
+
 
 // エラー処理
 void parse_error(char *error_func_name, char *error_message) {
