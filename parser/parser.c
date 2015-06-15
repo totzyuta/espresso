@@ -93,7 +93,7 @@ void parse_define_statement(FILE *fp) {
 }
 
 // 配列宣言の解析
-// <配列宣言> :== <識別子>[<整数>] | <配列宣言>[<整数>]
+// <配列宣言> :== <識別子>[<整数>] | <識別子>[<整数>][<整数>]
 // 後戻り: <識別子>スキップ 
 void parse_define_array(FILE *fp) {
   error_func_name = "parse_define_array";
@@ -119,25 +119,33 @@ void parse_define_array(FILE *fp) {
   printf("配列宣言の解析のおわり\n");
 }
 
+// DEBUG: 文集合の解析関数が何回呼ばれたかカウントして対応する終わりを確認するため
+int number_statements = 0;
+
 // 文集合の解析
 // <文集合> ::= <文> <文集合> | <文>
 void parse_statements(FILE *fp) {
+  // DEBUG
+  number_statements++;
   error_func_name = "parse_statement";
-  printf("文集合の解析の始まり\n");
+  printf("文集合の解析の始まり (%d)\n", number_statements);
   parse_statement(fp);
-  parse_statements(fp);
-  printf("文集合の解析のおわり\n");
+  if (token->type != RCURLY && token != NULL && strcmp(token->string,"return")!=0) { 
+    parse_statements(fp);
+  }
+  printf("文集合の解析のおわり (%d)\n", number_statements);
+  // DEBUG
+  number_statements--;
 }
 
 // 文の解析
 // <文> ::= <代入文> | <ループ文> | <条件分岐文> | <関数宣言文> | <関数>;| break;
+// 後戻り <識別子>飛ばして `=` から
 void parse_statement(FILE *fp) {
   error_func_name = "parse_statement";
   printf("文の解析の始まり\n");
-  printf("文 token string :%s\n",token->string);
   //  ungetToken();
   token = nextToken(fp);
-  printf("after nextToken :%s\n ",token ->string);
   if(token->type == IDENT){ 
     token = nextToken(fp);
     if(token->type == EQUAL){
@@ -168,8 +176,6 @@ void parse_statement(FILE *fp) {
   }else if(token ->type == CALL){
     ungetToken();
     parse_func(fp);
-  }else {
-    parse_error(error_func_name, error_message);
   }
   printf("文の解析の終わり\n");
 }
@@ -182,7 +188,7 @@ void parse_assign_array(FILE *fp){
   token = nextToken(fp);
   if(token->type == EQUAL){
     token = nextToken(fp);
-    if(token->type == CALL){
+    if(token->type == CALL){ // TODO: サンプルプログラムでチェックしきれてない　
       token = nextToken(fp);
       if(token->type == IDENT){
         ungetToken();
@@ -213,29 +219,30 @@ void parse_assign_array(FILE *fp){
 }
 
 // 代入文の解析
+// 後戻り <識別子>はスキップして `=` から
 void parse_assign_value(FILE *fp) {
-  printf("parse_assign_value 後戻りで呼び出された\n");
+  // DEBUG
+  // printf("parse_assign_value 後戻りで呼び出された\n");
   error_func_name = "parse_assign_value";
   printf("代入文の解析のはじまり\n");
+  token = nextToken(fp); // unget token: これでtoken-stringは`=`になってるはず　 
   if(token->type == EQUAL){
     token = nextToken(fp);
     if(token ->type == CALL){
-      ungetToken();
       parse_func(fp);
       token = nextToken(fp);
       if(token->type != SEMICOLON){
+        error_message = "Not ends with `;` when to assign value";
         parse_error(error_func_name, error_message);
       }
-    }
-    else{
-      printf("oparser call\n");
+    }else{
+      ungetToken();
       Oparser(fp);   // call Oparser !!
-      token = nextToken(fp);
+      token = nextToken(fp); // unget token
       if(token->type != SEMICOLON){
+        error_message = "Not ends with `;` when to assign value";
         parse_error(error_func_name, error_message);
       }
-      //変更箇所
-      //token = nextToken(fp);
     }
   }else{
     parse_error(error_func_name, error_message);
@@ -283,18 +290,30 @@ void parse_argument(FILE *fp) {
 
 // 関数の解析
 void parse_func(FILE *fp) {
-  printf("parse_func 後戻りで呼ばれた\n");
   printf("関数の解析の始まり\n");
   error_func_name = "parse_func";
-  token = nextToken(fp);
-  if(token->type == LPAREN){
+  token = nextToken(fp); 
+  if(token->type == IDENT) {
     token = nextToken(fp);
-    if(token->type == RPAREN){
+    if(token->type == LPAREN){
+      token = nextToken(fp);
+      if(token->type == RPAREN){ // 引数がない場合
+        // nothing
+      }else { // 引数がある場合
+        ungetToken();
+        parse_argument(fp);
+        token = nextToken(fp);
+        if(token->type != RPAREN){ 
+          error_message = "Ends calling function with `)`";
+          parse_error(error_func_name, error_message);
+        }
+      }
     }else{
-      ungetToken();
-      parse_argument(fp);
+      error_message = "Wrong way to call function. May check `(` is after identifier.";
+      parse_error(error_func_name, error_message);
     }
-  }else{
+  }else {
+    error_message = "Not calling function with correct identifier.";
     parse_error(error_func_name, error_message);
   }
   printf("関数の解析の終わり \n");
@@ -337,7 +356,7 @@ void parse_define_func(FILE *fp) {
               }
             }
           }
-        }else{
+        }else{ // 引数がある場合　
           token = nextToken(fp);
           if(token->type == LCURLY){
             parse_statements(fp);
@@ -384,6 +403,7 @@ void parse_while(FILE *fp) {
         token = nextToken(fp);
         if(token->type == LCURLY){
           parse_statements(fp);
+          ungetToken();
           token = nextToken(fp);
           if(token->type == RCURLY){
             miss = 0;
