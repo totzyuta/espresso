@@ -40,7 +40,11 @@ void parse_program(FILE *fp) {
   printf("変数宣言部の解析の始まり\n");
   parse_define(fp);
   printf("変数宣言部の解析のおわり\n");
-  parse_define_funcs(fp);
+  token = nextToken(fp);
+  if(token->type == FUNC) {
+    ungetToken();
+    parse_define_funcs(fp);
+  }
   parse_statements(fp);
   printf("プログラム全体の始まり\n");
 }
@@ -221,7 +225,7 @@ void parse_statement(FILE *fp) {
   }else if(token ->type == CALL){
     ungetToken();
     parse_func(fp);
-  }else if( strcmp(token->string, "return")!=0 ){
+  }else {
     // returnのときだけ2入れちゃう
     not_statemtnt = 1;
   }
@@ -481,29 +485,30 @@ void parse_if(FILE *fp) {
   if(token->type == IF){
     token = nextToken(fp);
     if(token->type == LPAREN){
-      parse_compare(fp);
+      parse_compare(fp); // 条件式の解析
       token = nextToken(fp);
       if(token->type == RPAREN){
         token = nextToken(fp);
         if(token->type == LCURLY){
           parse_statements(fp);
-          token = nextToken(fp);
+          // token = nextToken(fp);
           if(token->type == RCURLY){
             miss = 0;
             token =nextToken(fp);
             if(token->type == ELSE){
               miss = 1;
               token = nextToken(fp);
-              if(token->type == LPAREN){
+              if(token->type == LCURLY){
                 parse_statements(fp);
                 token = nextToken(fp);
-                if(token->type == RPAREN){
+                if(token->type == RCURLY){
                   miss = 0;
-                  token = nextToken(fp); /*else~~~が付く場合の token の位置の調整 */
+                  // token = nextToken(fp); /*else~~~が付く場合の token の位置の調整 */
                 }
               }
             }
-          ungetToken();
+            // ELSEがなかったときに一個戻してる
+            ungetToken();
           } 
         }
       }
