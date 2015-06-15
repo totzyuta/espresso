@@ -10,6 +10,7 @@ Node *Oparser(FILE *fp);
 static void parse_define(FILE *fp);
 static void parse_define_statement(FILE *fp);
 static void parse_define_array(FILE *fp);
+static void parse_define_funcs(FILE *fp);
 static void parse_statements(FILE *fp);
 static void parse_statement(FILE *fp);
 static void parse_assign_array(FILE *fp);
@@ -33,12 +34,13 @@ char *error_message;
 TokenSt *token;
 
 // プログラム全体の解析
-// <プログラム> :== <変数宣言部><文集合>
+// <プログラム> :== <変数宣言部><関数宣言部><文集合>
 void parse_program(FILE *fp) {
   printf("プログラム全体の解析の始まり\n");
   printf("変数宣言部の解析の始まり\n");
   parse_define(fp);
   printf("変数宣言部の解析のおわり\n");
+  parse_define_funcs(fp);
   parse_statements(fp);
   printf("プログラム全体の始まり\n");
 }
@@ -119,8 +121,25 @@ void parse_define_array(FILE *fp) {
   printf("配列宣言の解析のおわり\n");
 }
 
+// 関数宣言部の解析
+// <関数宣言部> ::= <関数宣言文> <関数宣言部> | <関数宣言文>
+void parse_define_funcs(FILE *fp) {
+  printf("関数宣言部の解析のはじまり\n");
+  parse_define_func(fp);
+  token = nextToken(fp);
+  // 文の先頭が`func`であれば再帰して解析
+  if(token->type == FUNC) {
+    parse_define_funcs(fp);
+  }
+  ungetToken();
+  printf("関数宣言部の解析のおわり\n");
+}
+
 // DEBUG: 文集合の解析関数が何回呼ばれたかカウントして対応する終わりを確認するため
 int number_statements = 0;
+
+// 文かどうかを判断するためのフラグ変数 0:<文>/1:<文>ではない
+int not_statemtnt = 0;
 
 // 文集合の解析
 // <文集合> ::= <文> <文集合> | <文>
@@ -130,8 +149,15 @@ void parse_statements(FILE *fp) {
   error_func_name = "parse_statement";
   printf("文集合の解析の始まり (%d)\n", number_statements);
   parse_statement(fp);
-  if (token->type != RCURLY && token != NULL && strcmp(token->string,"return")!=0) { 
-    parse_statements(fp);
+  // 1. さっき読み込んだトークンが文章であり
+  // 2. NULLでもなければ
+  // 再帰して文集合の解析を続行する
+  if (not_statemtnt == 0) { 
+    token = nextToken(fp);
+    if (token != NULL) {
+      ungetToken();
+      parse_statements(fp);
+    }
   }
   printf("文集合の解析のおわり (%d)\n", number_statements);
   // DEBUG
@@ -139,13 +165,15 @@ void parse_statements(FILE *fp) {
 }
 
 // 文の解析
-// <文> ::= <代入文> | <ループ文> | <条件分岐文> | <関数宣言文> | <関数>;| break;
+// <文> ::= <代入文> | <ループ文> | <条件分岐文> | <関数>;| break;
 // 後戻り <識別子>飛ばして `=` から
 void parse_statement(FILE *fp) {
+  not_statemtnt = 0;
   error_func_name = "parse_statement";
   printf("文の解析の始まり\n");
   //  ungetToken();
   token = nextToken(fp);
+  printf("%s\n", token->string);
   if(token->type == IDENT){ 
     token = nextToken(fp);
     if(token->type == EQUAL){
@@ -170,12 +198,12 @@ void parse_statement(FILE *fp) {
   }else if(token->type == IF){
     ungetToken();
     parse_if(fp);
-  }else if(token->type == FUNC) {
-    ungetToken();
-    parse_define_func(fp);
   }else if(token ->type == CALL){
     ungetToken();
     parse_func(fp);
+  }else if( strcmp(token->string, "return")!=0 ){
+    // returnのときだけ2入れちゃう
+    not_statemtnt = 1;
   }
   printf("文の解析の終わり\n");
 }
@@ -320,57 +348,63 @@ void parse_func(FILE *fp) {
 }
 
 // 関数宣言文の解析
+/*<関数宣言文> ::= func <識別子>(<引数>) { <文集合> } | func <識別子>(){ <文集合> } | func <識別子>(<引数>) {<文集合> return <変数>;}|func <識別子>(){<文集合> return <変数>;}*/
 void parse_define_func(FILE *fp) {
   int miss = 1;
   error_func_name = "parse_define";
   printf("関数宣言文の解析の始まり\n");
   token = nextToken(fp);
-  if(token->type == FUNC){
+  if(token->type == FUNC){  /*"func"*/
     token = nextToken(fp);
-    if(token->type == IDENT){
+    if(token->type == IDENT){  /*<識別子>*/
       token = nextToken(fp);
-      if(token->type == LPAREN){
+      if(token->type == LPAREN){ /*'('*/
         token = nextToken(fp);
-        if(token->type != RPAREN){  /*空白の場合もあとで記述 */
+        if(token->type != RPAREN){  /*空白の場合もあとで記述 */     /*')'でない場合*/
           ungetToken();
-          parse_argument(fp);
-          if(token->type == RPAREN){
-            token = nextToken(fp);
-            if(token->type == LCURLY){
-              parse_statements(fp);
+          parse_argument(fp); /*<引数>*/
+          token = nextToken(fp);
+          if(token->type == RPAREN){  /*')'*/
+            token = nextToken(fp);  
+            if(token->type == LCURLY){  /*'{'*/
+              parse_statements(fp);  /*<文集合>*/
               token = nextToken(fp);
-              if(token->type == RCURLY){
+              if(token->type == RCURLY){  /*'}'*/
                 miss = 0;
+                /*token = nextToken(fp);*/ 
+              }else{ /*'}'出ない場合, つまり"return"がくる場合*/
+                miss = 1;
                 token = nextToken(fp);
-                if(token->type == ELSE){
-                  miss = 1;
+                if(token->type == RETURN){  /*"return"*/
+                  parse_value(fp);  /*<変数>*/
                   token = nextToken(fp);
-                  if(token->type == LCURLY){
-                    parse_statements(fp);
+                  if(token->type == SEMICOLON){  /*';'*/
                     token = nextToken(fp);
-                    if(token->type == RCURLY){
+                    if(token->type == RCURLY){  /*'}'*/
                       miss = 0;
-                    }
+                    } 
                   }
                 }
               }
             }
           }
-        }else{ // 引数がある場合　
+        }else{
           token = nextToken(fp);
-          if(token->type == LCURLY){
-            parse_statements(fp);
+          if(token->type == LCURLY){  /*'{'*/
+            parse_statements(fp);  /*<文集合>*/
             token = nextToken(fp);
-            if(token->type == RCURLY){
+            if(token->type == RCURLY){  /*'}'*/
               miss = 0;
-              token = nextToken(fp);
-              if(token->type == ELSE){
-                miss = 1;
+              /*token = nextToken(fp);*/
+            }else{ /*'}'出ない場合, つまり"return"がくる場合*/
+              miss = 1;
+              /*token = nextToken(fp);*/
+              if(token->type == RETURN){  /*"return"*/
+                parse_value(fp);  /*<変数>*/
                 token = nextToken(fp);
-                if(token->type == LCURLY){
-                  parse_statements(fp);
+                if(token->type == SEMICOLON){  /*';'*/
                   token = nextToken(fp);
-                  if(token->type == RCURLY){
+                  if(token->type == RCURLY){  /*'}'*/
                     miss = 0;
                   }
                 }
