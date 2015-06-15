@@ -1,6 +1,8 @@
 define array[3];
+define array2[2][4];
 define a;
 define i;
+define flag;
 
 func resetArray() {
   i = 0;
@@ -11,7 +13,10 @@ func resetArray() {
   return 1;
 }
 
-if (call resetArray() == 1) {
+flag = call resetArray();
+array2[0][flag] = 100;
+
+if (flag == 1) {
   array[1] = 1;
 }else {
   array[2] = 1;
