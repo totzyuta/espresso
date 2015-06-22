@@ -36,6 +36,7 @@ TokenSt *nextToken(FILE *fp){
   // 余計に読み込んでいるときは前のトークンを返す
   if (flag == 1) {
     flag = 0;
+    printf("unget token: [%d] %s\n", previous->type, previous->string);
     return previous; // L:94で代入
   }
   
@@ -100,6 +101,9 @@ TokenSt *nextToken(FILE *fp){
   // 1字句余計に読み込んでいるときに返すトークンを格納する変数
   previous = token;
 
+  // DEBUG
+  printf("token: [%d] %s\n", token->type, token->string);
+
   return token;
 }
 
@@ -122,7 +126,7 @@ static CharType charToCharType(int c){
   if (c=='=') 
     return eq;
 
-  if ( (c=='+') || (c=='-') || (c=='*') || (c=='/') || (c==';') || (c=='(') || (c==')') || (c=='{') || (c=='}') || (c=='[') || (c==']') ) 
+  if ( (c=='+') || (c=='-') || (c=='*') || (c=='/') || (c==';') || (c=='(') || (c==')') || (c=='{') || (c=='}') || (c=='[') || (c==']') || (c==',') )
     return sign;
 
   if (c=='!') 
@@ -165,5 +169,6 @@ static TokenType whichTokenType(char *s, StateType state){
   if (strcmp(s, "<=") == 0) return EQLESS;
   if (strcmp(s, "!=") == 0) return NEQUAL;
   if (strcmp(s, "==") == 0) return EQUAL2;
+  if (strcmp(s, ",") == 0) return COMMA;
   if (strcmp(s, ";") == 0) return SEMICOLON;
 }

@@ -333,7 +333,7 @@ void parse_argument(FILE *fp) {
   }else{
     parse_error(error_func_name, error_message);
   }
-  token = nextToken(fp);
+//  token = nextToken(fp);
   if(token->type == COMMA){
     parse_argument(fp);
   }else{
