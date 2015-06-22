@@ -1,0 +1,13 @@
+define a;
+define b;
+
+func arg(argument) {
+  while (argument==0) {
+    a = 0;
+  }
+  a = argument;
+}
+
+a = 0;
+b = 1;
+call arg(b);
