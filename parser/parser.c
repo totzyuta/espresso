@@ -162,33 +162,25 @@ void parse_define_funcs(FILE *fp) {
 // DEBUG: 文集合の解析関数が何回呼ばれたかカウントして対応する終わりを確認するため
 int number_statements = 0;
 
-// 文かどうかを判断するためのフラグ変数 0:<文>/1:<文>ではない
-int not_statemtnt = 0;
-
 // 文集合の解析
 // <文集合> ::= <文> <文集合> | <文>
+// ここでは関数の最初にnextToken()を呼んでいないので
+// 呼び出し時にtokenがすでに読み込むべき最初のトークンになっている必要がある
 void parse_statements(FILE *fp) {
   // DEBUG
   number_statements++;
   error_func_name = "parse_statement";
+  error_message = "";
   printf("文集合の解析の始まり (%d)\n", number_statements);
   parse_statement(fp);
-  // DEBUG
-  // printf(">> >> >> HERE: %s\n", token->string);
-  // 1. さっき読み込んだトークンが文章であり
-  // 2. NULLでもなければ
-  // 再帰して文集合の解析を続行する
-  if (not_statemtnt == 0) { 
-    token = nextToken(fp);
-    if(token->type == RETURN){ // 変更箇所　重要　関数内で代入文の次にreturn が来る場合に文集合が終了するように変更
-      ungetToken();
-    }
-    else if (token != NULL ) {
-      ungetToken();
+
+  // 最後がかっこかreturnじゃなかったら再帰
+  if(token != NULL) {
+    if (strcmp(token->string, "}")!=0 && token->type != RETURN) {
       parse_statements(fp);
     }
-
   }
+
   printf("文集合の解析のおわり (%d)\n", number_statements);
   // DEBUG
   number_statements--;
@@ -198,7 +190,6 @@ void parse_statements(FILE *fp) {
 // <文> ::= <代入文> | <ループ文> | <条件分岐文> | <関数宣言文> | <関数>;| break;
 // 後戻り <識別子>飛ばして `=` から
 void parse_statement(FILE *fp) {
-  not_statemtnt = 0;
   error_func_name = "parse_statement";
   printf("文の解析の始まり\n");
   //  ungetToken();
@@ -219,6 +210,7 @@ void parse_statement(FILE *fp) {
       //    parse_error(error_func_name, error_message);
       // }
     }else {
+      error_message = "`=` or `[` should follow identifier. Or maybe you forgot `call` for using function.";
       parse_error(error_func_name, error_message);
     }
   }else if(token->type == WHILE){
@@ -230,8 +222,14 @@ void parse_statement(FILE *fp) {
   }else if(token ->type == CALL){
     // ungetToken();
     parse_func(fp);
-  }else if(token->type != RETURN){ //return が文集合の中に入ってしまっているため　省き　文集合を終了させる
-    not_statemtnt = 1;
+    token = nextToken(fp);
+    if(token->type != SEMICOLON) {
+      error_message = "no semicolon after calling function.";
+      parse_error(error_func_name, error_message);
+    }
+    token = nextToken(fp);
+  }else if(token->type == RETURN){ //return が文集合の中に入ってしまっているため　省き　文集合を終了させる
+    ungetToken();
   }
   printf("文の解析の終わり\n");
 }
@@ -308,6 +306,7 @@ void parse_assign_value(FILE *fp) {
 void parse_value(FILE *fp) {
   printf("変数の解析のはじまり\n");
   error_func_name = "parse_value";
+  error_message = "";
   token = nextToken(fp);
   if(token->type == IDENT){
     token = nextToken(fp);
@@ -316,6 +315,7 @@ void parse_value(FILE *fp) {
       parse_array(fp);
     }
   }else if (token->type == INTEGER){
+    token = nextToken(fp);
   }else{
     parse_error(error_func_name, error_message);
   }
@@ -373,6 +373,7 @@ void parse_func(FILE *fp) {
   printf("関数の解析の終わり \n");
 }
 
+// 関数宣言文の解析
 void parse_define_func(FILE *fp){
   printf("関数宣言文の解析のはじまり\n");
   error_func_name = "parse_define_func";
@@ -423,7 +424,8 @@ void parse_define_func(FILE *fp){
     }
     ungetToken();   // ↑の文で確かめたために必要　確かめない場合は不要
     parse_value(fp);
-    token = nextToken(fp);
+    // EDITED
+    // token = nextToken(fp);
     if(token->type != SEMICOLON){
       error_message = " token type not SEMICOLON return <...> ? here";
       parse_error(error_func_name,error_message);
@@ -459,9 +461,7 @@ void parse_while(FILE *fp) {
       if(token->type == RPAREN){
         token = nextToken(fp);
         if(token->type == LCURLY){
-          parse_statements(fp);
-          ungetToken();
-          token = nextToken(fp);
+          parse_statements(fp); // whileの中で行う処理の文集合の解析
           if(token->type == RCURLY){
             miss = 0;
           }
@@ -470,8 +470,11 @@ void parse_while(FILE *fp) {
     }
   }
   if(miss == 1){
+    error_message = "wrong syntax in while loop";
     parse_error(error_func_name, error_message);
   }
+  token = nextToken(fp);
+  ungetToken();
   printf("ループ文の解析の終わり\n");
 }
 
