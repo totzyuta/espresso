@@ -93,6 +93,9 @@ int Check(Node *Operator) {
 
 
 Node* Oparser(FILE *fp){
+  // DEBUG
+  printf("Oparser called!\n");
+
   TokenSt *token;
   Node *node,*temp,*node2;
   int final; 
@@ -115,7 +118,7 @@ Node* Oparser(FILE *fp){
     node->left = NULL;
     node->right = NULL;
 
-    if (node->token->type == LCURLY || node->token->type == RCURLY || node->token->type == EQUAL2 ||node->token->type == GREATER ||node->token->type == LESS || node->token->type ==  SEMICOLON || node->token->type == COMMA) {
+    if (node->token->type == LCURLY || node->token->type == RCURLY || node->token->type == EQUAL2 ||node->token->type == GREATER ||node->token->type == LESS || node->token->type == EQGREATER || node->token->type == EQLESS || node->token->type ==  SEMICOLON || node->token->type == COMMA) {
 
       ungetToken();
       tmp = node->token->type;
