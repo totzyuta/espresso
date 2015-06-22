@@ -176,7 +176,7 @@ void parse_statements(FILE *fp) {
 
   // 最後がかっこかreturnじゃなかったら再帰
   if(token != NULL) {
-    if (strcmp(token->string, "}")!=0 && token->type != RETURN) {
+    if (token->type != RCURLY && token->type != RETURN) {
       parse_statements(fp);
     }
   }
@@ -242,7 +242,7 @@ void parse_assign_array(FILE *fp){
   token = nextToken(fp);
   if(token->type == EQUAL){
     token = nextToken(fp);
-    if(token->type == CALL){ // TODO: サンプルプログラムでチェックしきれてない　
+    if(token->type == CALL){ 
       token = nextToken(fp);
       if(token->type == IDENT){
         ungetToken();
@@ -436,11 +436,6 @@ void parse_define_func(FILE *fp){
       parse_error(error_func_name,error_message);
       goto AFTER_RCURLY;
     }
-  }else if(token->type == RCURLY){
-    goto AFTER_RCURLY; 
-  }else{
-   error_message = "not return or not void";
-   parse_error(error_func_name,error_message);
   }
   AFTER_RCURLY:
   printf("関数宣言文の解析の終わり\n");

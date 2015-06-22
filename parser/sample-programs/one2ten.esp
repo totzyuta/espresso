@@ -8,6 +8,7 @@ func one2ten() {
     sum = sum + i;
     i = i + 1;
   }
+  return sum;
 }
 
 call one2ten();
