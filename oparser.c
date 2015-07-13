@@ -164,6 +164,7 @@ Node* Oparser(FILE *fp){
     node->token->type = tmp;
   }
   temp=pop(0);
+  code_generate(temp);
   return temp;
 }
 
@@ -183,6 +184,49 @@ void freeTree(Node *node) {
   }
   free(node->token);
   free(node);
+}
+
+
+// TODO: Generating assembly code 
+char a_stack[100];
+int a_pointer = 0;
+
+void push_a(val) {
+  a_stack[a_pointer] = val;
+  a_pointer++;
+}
+
+int pop_a() {
+  val = a_stack[a_pointer];
+  a_pointer--;
+  return val;
+}
+
+void code_generate(Node *node) {
+  if (node->left != NULL || node->right != NULL) {
+    code_generate(node->left); // search from left node
+    code_generate(node->right);
+  }
+  // スタックに格納
+  push_a(node->token->string);
+  // 数字や識別子ならスタックに格納
+  if (node->token->type == IDENT || node->token->type == INT /*TODO:記号チェック*/) {
+    push_a(node->token->string);
+  }else if (node->token->type == ADD || node->token->type == SUB || node->token->type == DIV || node->token->type == MULT /*TODO:記号チェック*/) {
+    // 四則演算ならスタックから2つポップ
+    val1 = pop_a();
+    val2 = pop_a();
+    // -> 計算するアセンブリを生成,答えを$t1などに一時的に格納する
+    switch (node->token->type) {
+      case ADD:
+        printf("add $t0, $t1, $t2");
+        break;
+      default:
+        break;
+    }
+    printf("");
+    // -> $t1などの一時的な値をスタックに格納する
+  }
 }
 
 Node* Array(Node *node,FILE *fp){
@@ -222,5 +266,6 @@ Node* Array(Node *node,FILE *fp){
       }
     }
   }
+
   return node;        
 }
