@@ -123,10 +123,9 @@ Node* Oparser(FILE *fp){
       ungetToken();
       tmp = node->token->type;
       node->token->type = DOLLAR;
-      } 
+    } 
 
     if (node->token->type == RSQUARE){
-      
       tmp = node->token->type;
       node->token->type = DOLLAR;
     }
@@ -136,39 +135,39 @@ Node* Oparser(FILE *fp){
       node2 = (Node *)malloc(sizeof(Node));
       node2->token = (TokenSt *)malloc(sizeof(TokenSt));
 
-        node2->token = nextToken(fp);
+      node2->token = nextToken(fp);
         
-        if(node2-> token->type == LSQUARE){
-	  if(node->token->type == INTEGER){
-	    printf("error\n");
-	    exit(1);
-	  }
-        	node = Array(node,fp);
-        }else{
-	    ungetToken();
+      if(node2-> token->type == LSQUARE){
+        if(node->token->type == INTEGER){
+          printf("error\n");
+          exit(1);
         }
+        node = Array(node,fp);
+      }else{
+        ungetToken();
+      }
       push(0, node);
-      } else { 
+    } else { 
       final = Check(node);
     }
 
     
   }
-if (node->token->type == DOLLAR && tmp != RSQUARE){
-    
+
+  if (node->token->type == DOLLAR && tmp != RSQUARE){
     node->token->type = tmp;
- }
- temp=pop(0);
- return temp;
+  }
+  temp=pop(0);
+  return temp;
 }
 
 void printTree(Node *node){
-   if (node->left != NULL || node->right != NULL){
-       printTree(node->left);
-       printTree(node->right);
-   }
-   printf("%s ",node->token->string);
- }
+  if (node->left != NULL || node->right != NULL){
+    printTree(node->left);
+    printTree(node->right);
+  }
+  printf("%s ",node->token->string);
+}
 
 
 void freeTree(Node *node) {
@@ -181,46 +180,40 @@ void freeTree(Node *node) {
 }
 
 Node* Array(Node *node,FILE *fp){
+	TokenSt *token2,*token3; 
+  token2 = nextToken(fp);
+  if(token2->type == INTEGER || token2->type == IDENT ){
+    strcat(node->token->string,"[");
+    strcat(node->token->string,token2->string);
+    token3 = nextToken(fp);
+    if(token3->type == LSQUARE){
+      if(token2->type == INTEGER){
+        printf("配列の前 整数\n");
+        exit(1);
+      }
 
-	 TokenSt *token2,*token3; 
-   token2 = nextToken(fp);
-   if(token2->type == INTEGER || token2->type == IDENT ){
-   	    strcat(node->token->string,"[");
-   	    strcat(node->token->string,token2->string);
-        token3 = nextToken(fp);
-        if(token3->type == LSQUARE){
-	  if(token2->type == INTEGER){
-printf("配列の前 整数\n");
-exit(1);
-}
-
-       	  node = Array(node,fp);
-       	  token3 = nextToken(fp);
-       	  if(token3->type == RSQUARE){
-       	    strcat(node->token->string,"]");	
-       	  }
-       	token3 = nextToken(fp);
-       	if(token3->type == LSQUARE){
-       		node = Array(node,fp);
-
-       	}else{
-       		ungetToken();
-       	}
-        }else{
-
-        if(token3->type == RSQUARE){
-           
+      node = Array(node,fp);
+      token3 = nextToken(fp);
+      if(token3->type == RSQUARE){
+        strcat(node->token->string,"]");	
+      }
+      token3 = nextToken(fp);
+      if(token3->type == LSQUARE){
+        node = Array(node,fp);
+      }else{
+        ungetToken();
+      }
+    }else{
+      if(token3->type == RSQUARE){
         strcat(node->token->string,"]");
-        }
-
-        token3 = nextToken(fp);
-        if(token3->type == LSQUARE){
+      }
+      token3 = nextToken(fp);
+      if(token3->type == LSQUARE){
        	node = Array(node,fp);
-        }else{
+      }else{
        	ungetToken();
-       }
-   }
-
+      }
+    }
   }
-    return node;        
+  return node;        
 }
