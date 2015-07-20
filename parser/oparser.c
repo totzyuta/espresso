@@ -217,3 +217,78 @@ Node* Array(Node *node,FILE *fp){
   }
   return node;        
 }
+
+int first_flag=0;
+char *N1, *N2, *Tn, *INPUT;
+void enable_t(char *tn);
+int available_t();
+
+void print_oparser(Node *node, FILE *wfp){ // `wfp` is for what?
+  int i = 0;
+  *N1 = NULL;
+  *N2 = NULL;
+  INPUT = (char *)malloc(sizeof(char));
+  N1 = (char *)malloc(sizeof(char));
+  N2 = (char *)malloc(sizeof(char));
+
+  if (node->left != NULL && node->right != NULL){
+    first_flag++;
+    print_oparser(node->right, wfp);
+    strcpy(N1, Tn);
+    print_oparser(node->left, wfp);
+    strcpy(N2, Tn);
+    first_flag--;
+    if(first_flag == 0) {
+      Tn = "v0";
+      enable_t(N1);
+    }else {
+      Tn = N1;
+    }
+    print_nop(wfp);
+    print_arithmetic(Tn, N1, N2, node->token->type, wfp);
+  }else {
+    if(dbg4 != 0)
+      printf("Start Input Section\n"); /* DEBUG */
+    if (first_flag != 0) {
+      sprintf(INPUT, "t%d", available_t());
+      print_input(INPUT, node->token, wfp); // token->string 文字列をt0に代入的な
+    }else {
+      INPUT = "v0";
+      print_input(INPUT, node->token, wfp);
+    }
+    Tn = INPUT;
+    print_input(INPUT, node->token, wfp);
+  }
+  Tn = INPUT;
+  if(dbg4 != 0)
+    printf("End Input Section\n"); /* DEBUG */
+}
+
+int available_t() {
+  int i;
+  for(i=0; i<7; i++) {
+    if(used_t[i] == 0) {
+      used_t[i] = 1;
+      return i;
+    }
+  }
+  return -1;
+  exit(1); /* ERROR */
+}
+
+void enable_t(char *tn) {
+  if(dbg2 == 1) {
+    printf("used_t %d\n", used_t[5]);
+    printf("tn : %s\nn : %d\n", tn, tn[1]-'0');
+  }
+  if(strcmp(tn, "v0") != 0) {
+    used_t[tn[1] - '0'] = 0;
+  }
+  if(dbg2 == 1) {
+    printf("used_t %d\n", used_t[5]);
+  }
+}
+
+void print_arithmetic() {
+  // TODO: 算術式をassemblyで出力
+}
