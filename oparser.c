@@ -10,6 +10,7 @@ void freeTree(Node *node);
 Node* Array(Node *node, FILE *fp);
 static Node *Stack[2][MaxStack];
 static int Sptr[2]={0,0}; 
+void code_generate(Node *node);
 
 static OrderType orderMatrix[][5] = {
   // row:TopNode, column:Operator
@@ -118,8 +119,16 @@ Node* Oparser(FILE *fp){
     node->left = NULL;
     node->right = NULL;
 
-    if (node->token->type == LCURLY || node->token->type == RCURLY || node->token->type == EQUAL2 ||node->token->type == GREATER ||node->token->type == LESS || node->token->type == EQGREATER || node->token->type == EQLESS || node->token->type == NEQUAL || node->token->type ==  SEMICOLON || node->token->type == COMMA) {
-
+    if (node->token->type == LCURLY 
+        || node->token->type == RCURLY 
+        || node->token->type == EQUAL2 
+        || node->token->type == GREATER 
+        || node->token->type == LESS 
+        || node->token->type == EQGREATER 
+        || node->token->type == EQLESS 
+        || node->token->type == NEQUAL 
+        || node->token->type ==  SEMICOLON 
+        || node->token->type == COMMA) {
       ungetToken();
       tmp = node->token->type;
       node->token->type = DOLLAR;
@@ -150,10 +159,8 @@ Node* Oparser(FILE *fp){
     } else { 
       final = Check(node);
     }
-
     
   }
-
   if (node->token->type == DOLLAR && tmp != RSQUARE){
     node->token->type = tmp;
   }

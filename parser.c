@@ -44,6 +44,8 @@ int add = 0;
 void parse_program(FILE *fp) {
   printf("プログラム全体の解析の始まり\n");
   printf("変数宣言部の解析の始まり\n");
+  // 識別子名を格納
+  printf(".data\n"); // 変数領域の確保開始
   parse_define(fp);
   printf("変数宣言部の解析のおわり\n");
   token = nextToken(fp);
@@ -186,7 +188,7 @@ void parse_statements(FILE *fp) {
 
   // 最後がかっこかreturnじゃなかったら再帰
   if(token != NULL) {
-    if (token->type != RCURLY && token->type != RETURN) {
+    if (strcmp(token->string, "}")!=0 && token->type != RETURN) {
       parse_statements(fp);
     }
   }
@@ -253,7 +255,7 @@ void parse_assign_array(FILE *fp){
   token = nextToken(fp);
   if(token->type == EQUAL){
     token = nextToken(fp);
-    if(token->type == CALL){ 
+    if(token->type == CALL){ // TODO: サンプルプログラムでチェックしきれてない　
       token = nextToken(fp);
       if(token->type == IDENT){
         ungetToken();
@@ -288,6 +290,9 @@ void parse_assign_array(FILE *fp){
 void parse_assign_value(FILE *fp, char *to_be_assigned_val) {
   error_func_name = "parse_assign_value";
   printf("代入文の解析のはじまり\n");
+  // varに変数名を格納
+  char *var;
+  var = token->string; // TODO ここだと`=`が入ってしまう
   token = nextToken(fp); // unget token: これでtoken-stringは`=`になってるはず　 
   if(token->type == EQUAL){
     token = nextToken(fp);
@@ -312,6 +317,8 @@ void parse_assign_value(FILE *fp, char *to_be_assigned_val) {
         error_message = "Not ends with `;` when to assign value";
         parse_error(error_func_name, error_message);
       }
+      printf("li $t0, %s\n", var);
+      printf("sw $v0, 0($t0)\n");
     }
   }else{
     parse_error(error_func_name, error_message);
@@ -453,6 +460,11 @@ void parse_define_func(FILE *fp){
       parse_error(error_func_name,error_message);
       goto AFTER_RCURLY;
     }
+  }else if(token->type == RCURLY){
+    goto AFTER_RCURLY; 
+  }else{
+   error_message = "not return or not void";
+   parse_error(error_func_name,error_message);
   }
   AFTER_RCURLY:
   printf("関数宣言文の解析の終わり\n");
