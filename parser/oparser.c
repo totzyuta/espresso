@@ -232,15 +232,16 @@ char *Tn; // 一時的に値(文字列)を格納しとく場所
 void print_arithmetic(char *str0, char *str1, char *str2, int type/*, FILE *wfp*/);
 
 void print_oparser(Node *node/*, FILE *wfp*/){ // `wfp` is for writing assembly program
-  char *N1, *N2, *INPUT = NULL;
+  // char *N1, *N2, *INPUT = NULL;
+  char INPUT[100], N1[100], N2[100];
 
   if (node->left != NULL && node->right != NULL){
     first_flag++; 
     print_oparser(node->left/*, wfp*/);
-    N1 = (char *)malloc(sizeof(char));
+    // N1 = (char *)malloc(sizeof(char));
     strcpy(N1, Tn); // ひとつめのoperandをN1に代入
     print_oparser(node->right/*, wfp*/);
-    N2 = (char *)malloc(sizeof(char));
+    // N2 = (char *)malloc(sizeof(char));
     strcpy(N2, Tn); // ふたつめのoperandをN2に代入
     first_flag--;
     if(first_flag == 0) {
@@ -252,11 +253,12 @@ void print_oparser(Node *node/*, FILE *wfp*/){ // `wfp` is for writing assembly 
     // print_nop(wfp);
     print_arithmetic(Tn, N1, N2, node->token->type/*, wfp*/);
   }else {
-    INPUT = (char *)malloc(sizeof(char));
+    // INPUT = (char *)malloc(sizeof(char));
     if (first_flag != 0) {
       sprintf(INPUT, "t%d", available_t()); // 使えるtレジスタを検索して値を返す
     }else {
-      INPUT = "v0"; // first_flagが0ならv0
+      // INPUT = "v0"; // first_flagが0ならv0
+      sprintf(INPUT, "v0");
     }
     Tn = INPUT;
     if(node->token->type == IDENT) {
