@@ -1,13 +1,9 @@
 define i;
 define sum;
 
-func one2ten() {
-  sum = 0;
-  i = 1;
-  while(i <= 11) {
-    sum = sum + i;
-    i = i + 1;
-  }
+sum = 0;
+i = 1;
+while(i <= 11) {
+  sum = sum + i;
+  i = i + 1;
 }
-
-call one2ten();

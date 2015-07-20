@@ -95,7 +95,7 @@ int Check(Node *Operator) {
 
 Node* Oparser(FILE *fp){
   // DEBUG
-  printf("Oparser called!\n");
+  // printf("Oparser called!\n");
 
   TokenSt *token;
   Node *node,*temp,*node2;
@@ -148,7 +148,7 @@ Node* Oparser(FILE *fp){
         
       if(node2-> token->type == LSQUARE){
         if(node->token->type == INTEGER){
-          printf("error\n");
+          fprintf(stderr, "error\n");
           exit(1);
         }
         node = Array(node,fp);
@@ -195,7 +195,7 @@ Node* Array(Node *node,FILE *fp){
     token3 = nextToken(fp);
     if(token3->type == LSQUARE){
       if(token2->type == INTEGER){
-        printf("配列の前 整数\n");
+        // printf("配列の前 整数\n");
         exit(1);
       }
 
@@ -310,8 +310,6 @@ void enable_t(char *tn) {
 }
 
 void print_arithmetic(char *arg1, char *arg2, char *arg3, int token_type) {
-  printf(">>> print_arithmetic called!!!");
-  /*
   switch (token_type) {
     case 9:
       printf("add $%s, $%s, $%s\n", arg1, arg2, arg3);
@@ -320,19 +318,14 @@ void print_arithmetic(char *arg1, char *arg2, char *arg3, int token_type) {
       printf("sub $%s, $%s, $%s\n", arg1, arg2, arg3);
       break;
     case 11:
-      // printf("mul $%s, $%s, $%s\n", arg1, arg2, arg3);
       printf("mult $%s, $%s\n" ,arg2, arg3);
       printf("mflo $%s\n",arg1);
       break;
     case 12:
-      // printf("div $%s, $%s, $%s\n", arg1, arg2, arg3);
       printf("div $%s, $%s\n",arg2, arg3);
       printf("mflo $%s\n",arg1);
       break;
     default:
       break;
-  }*/
-  if(token_type == ADD) {
-    printf("add $%s, $%s, $%s\n", arg1, arg2, arg3);
   }
 }

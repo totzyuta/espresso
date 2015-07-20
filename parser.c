@@ -27,6 +27,7 @@ static void parse_array(FILE *fp);
 static void parse_error(char *error_func_name, char *error_message);
 static void print_data();
 static void print_nop();
+static void init_print();
 void print_oparser(Node *node);
 
 char *error_func_name;
@@ -42,12 +43,13 @@ int add = 0;
 // プログラム全体の解析
 // <プログラム> :== <変数宣言部><文集合>
 void parse_program(FILE *fp) {
-  printf("プログラム全体の解析の始まり\n");
-  printf("変数宣言部の解析の始まり\n");
+  init_print(); 
+  // printf("プログラム全体の解析の始まり\n");
+  // printf("変数宣言部の解析の始まり\n");
   // 識別子名を格納
-  printf(".data\n"); // 変数領域の確保開始
+  // printf(".data\n"); // 変数領域の確保開始
   parse_define(fp);
-  printf("変数宣言部の解析のおわり\n");
+  // printf("変数宣言部の解析のおわり\n");
   token = nextToken(fp);
   if(token->type == FUNC) {
     ungetToken();
@@ -55,7 +57,8 @@ void parse_program(FILE *fp) {
   }
   ungetToken();
   parse_statements(fp);
-  printf("プログラム全体の始まり\n");
+  // printf("プログラム全体の始まり\n");
+  printf("j $ra\n");
   print_data();
 }
 
@@ -77,7 +80,7 @@ void parse_define(FILE *fp) {
 // <宣言文> ::= define <識別子>; | define <配列宣言>;
 void parse_define_statement(FILE *fp) {
   error_func_name = "parse_define_statement";
-  printf("宣言文の解析の始まり\n");
+  // printf("宣言文の解析の始まり\n");
   token = nextToken(fp);
   if(token->type == DEFINE) {
     token = nextToken(fp);
@@ -107,7 +110,7 @@ void parse_define_statement(FILE *fp) {
     error_message = "define not ends with ';'";
     parse_error(error_func_name, error_message);
   }
-  printf("宣言文の解析のおわり\n");
+  // printf("宣言文の解析のおわり\n");
 }
 
 // 配列宣言の解析
@@ -115,7 +118,7 @@ void parse_define_statement(FILE *fp) {
 // 後戻り: <識別子>スキップ 
 void parse_define_array(FILE *fp) {
   error_func_name = "parse_define_array";
-  printf("配列宣言の解析の始まり\n");
+  // printf("配列宣言の解析の始まり\n");
   token = nextToken(fp);
   if(token->type == LSQUARE) {
     token = nextToken(fp);
@@ -153,14 +156,14 @@ void parse_define_array(FILE *fp) {
       // ungetToken(); //先読みした文戻す
     }
   }
-  printf("配列宣言の解析のおわり\n");
+  // printf("配列宣言の解析のおわり\n");
 }
 
 
 // 関数宣言部の解析
 // <関数宣言部> ::= <関数宣言文> <関数宣言部> | <関数宣言文>
 void parse_define_funcs(FILE *fp) {
-  printf("関数宣言部の解析のはじまり\n");
+  // printf("関数宣言部の解析のはじまり\n");
   parse_define_func(fp);
   token = nextToken(fp);
   // 文の先頭が`func`であれば再帰して解析
@@ -168,7 +171,7 @@ void parse_define_funcs(FILE *fp) {
     parse_define_funcs(fp);
   }
   ungetToken();
-  printf("関数宣言部の解析のおわり\n");
+  // printf("関数宣言部の解析のおわり\n");
 }
 
 // DEBUG: 文集合の解析関数が何回呼ばれたかカウントして対応する終わりを確認するため
@@ -183,7 +186,7 @@ void parse_statements(FILE *fp) {
   number_statements++;
   error_func_name = "parse_statement";
   error_message = "";
-  printf("文集合の解析の始まり (%d)\n", number_statements);
+  // printf("文集合の解析の始まり (%d)\n", number_statements);
   parse_statement(fp);
 
   // 最後がかっこかreturnじゃなかったら再帰
@@ -193,7 +196,7 @@ void parse_statements(FILE *fp) {
     }
   }
 
-  printf("文集合の解析のおわり (%d)\n", number_statements);
+  // printf("文集合の解析のおわり (%d)\n", number_statements);
   // DEBUG
   number_statements--;
 }
@@ -203,7 +206,7 @@ void parse_statements(FILE *fp) {
 // 後戻り <識別子>飛ばして `=` から
 void parse_statement(FILE *fp) {
   error_func_name = "parse_statement";
-  printf("文の解析の始まり\n");
+  // printf("文の解析の始まり\n");
   //  ungetToken();
   token = nextToken(fp);
   if(token->type == IDENT){
@@ -244,18 +247,18 @@ void parse_statement(FILE *fp) {
   }else if(token->type == RETURN){ //return が文集合の中に入ってしまっているため　省き　文集合を終了させる
     ungetToken();
   }
-  printf("文の解析の終わり\n");
+  // printf("文の解析の終わり\n");
 }
 
 // 配列代入文の解析
 void parse_assign_array(FILE *fp){
-  printf("配列代入文の解析のはじまり\n");
+  // printf("配列代入文の解析のはじまり\n");
   error_func_name = "parse_assign_array";
   parse_array(fp);
   token = nextToken(fp);
   if(token->type == EQUAL){
     token = nextToken(fp);
-    if(token->type == CALL){ // TODO: サンプルプログラムでチェックしきれてない　
+    if(token->type == CALL){ 
       token = nextToken(fp);
       if(token->type == IDENT){
         ungetToken();
@@ -282,17 +285,17 @@ void parse_assign_array(FILE *fp){
   }else{
     parse_error(error_func_name, error_message);
   }
-  printf("配列代入文の解析の終わり\n");
+  // printf("配列代入文の解析の終わり\n");
 }
 
 // 代入文の解析
 // 後戻り <識別子>はスキップして `=` から
 void parse_assign_value(FILE *fp, char *to_be_assigned_val) {
   error_func_name = "parse_assign_value";
-  printf("代入文の解析のはじまり\n");
+  // printf("代入文の解析のはじまり\n");
   // varに変数名を格納
   char *var;
-  var = token->string; // TODO ここだと`=`が入ってしまう
+  var = token->string;
   token = nextToken(fp); // unget token: これでtoken-stringは`=`になってるはず　 
   if(token->type == EQUAL){
     token = nextToken(fp);
@@ -317,18 +320,16 @@ void parse_assign_value(FILE *fp, char *to_be_assigned_val) {
         error_message = "Not ends with `;` when to assign value";
         parse_error(error_func_name, error_message);
       }
-      printf("li $t0, %s\n", var);
-      printf("sw $v0, 0($t0)\n");
     }
   }else{
     parse_error(error_func_name, error_message);
   }
-  printf("代入文の解析の終わり\n");
+  // printf("代入文の解析の終わり\n");
 }
 
 // 変数の解析
 void parse_value(FILE *fp) {
-  printf("変数の解析のはじまり\n");
+  // printf("変数の解析のはじまり\n");
   error_func_name = "parse_value";
   error_message = "";
   token = nextToken(fp);
@@ -343,12 +344,12 @@ void parse_value(FILE *fp) {
   }else{
     parse_error(error_func_name, error_message);
   }
-  printf("変数の解析の終わり\n");
+  // printf("変数の解析の終わり\n");
 }
 
 // 引数の解析
 void parse_argument(FILE *fp) {
-  printf("引数の解析のはじまり\n");
+  // printf("引数の解析のはじまり\n");
   error_func_name = "parse_argument";
   token = nextToken(fp);
   if(token->type == INTEGER || token->type == IDENT ){
@@ -363,12 +364,12 @@ void parse_argument(FILE *fp) {
   }else{
     ungetToken();
   }
-  printf("引数の解析の終わり\n");
+  // printf("引数の解析の終わり\n");
 }
 
 // 関数の解析
 void parse_func(FILE *fp) {
-  printf("関数の解析の始まり\n");
+  // printf("関数の解析の始まり\n");
   error_func_name = "parse_func";
   token = nextToken(fp); 
   if(token->type == IDENT) {
@@ -394,12 +395,12 @@ void parse_func(FILE *fp) {
     error_message = "Not calling function with correct identifier.";
     parse_error(error_func_name, error_message);
   }
-  printf("関数の解析の終わり \n");
+  // printf("関数の解析の終わり \n");
 }
 
 // 関数宣言文の解析
 void parse_define_func(FILE *fp){
-  printf("関数宣言文の解析のはじまり\n");
+  // printf("関数宣言文の解析のはじまり\n");
   error_func_name = "parse_define_func";
   token = nextToken(fp);
   if (token->type != FUNC) {
@@ -467,9 +468,12 @@ void parse_define_func(FILE *fp){
    parse_error(error_func_name,error_message);
   }
   AFTER_RCURLY:
-  printf("関数宣言文の解析の終わり\n");
+  return ;
 }
 
+
+int LABEL = 1; // ラベルをL1から始める
+int LABEL2;
 
 // jumpの後にnopがいるよ。
 // L2は常に最後に抜ける場所として確保
@@ -490,7 +494,12 @@ void parse_define_func(FILE *fp){
 void parse_while(FILE *fp) {
   int miss = 1;
   error_func_name = "parse_while";
-  printf("ループ文の解析の始まり\n");
+  // printf("ループ文の解析の始まり\n");
+  // while文のラベルを生成
+  int label1 = LABEL++;
+  int label2 = LABEL++;
+  LABEL2 = label2;
+  printf("$L%d:\n", label1);
   token = nextToken(fp);
   if(token->type == WHILE){
     token = nextToken(fp);
@@ -508,17 +517,19 @@ void parse_while(FILE *fp) {
       }
     }
   }
+  printf("j $L%d\n", label1);
+  printf("$L%d:\n", label2);
   if(miss == 1){
     error_message = "wrong syntax in while loop";
     parse_error(error_func_name, error_message);
   }
   token = nextToken(fp);
   ungetToken();
-  printf("ループ文の解析の終わり\n");
+  // printf("ループ文の解析の終わり\n");
 }
 
 void parse_if(FILE *fp){
-  printf("条件分岐文の解析の始まり\n");
+  // printf("条件分岐文の解析の始まり\n");
   error_func_name = "parse_if";
   token = nextToken(fp);
   if(token->type != IF){
@@ -571,34 +582,22 @@ void parse_if(FILE *fp){
     ungetToken(); // else を余分に読み込んだため
   }
   parse_if_end:
-  printf("条件分岐文の解析の終わり\n");
-}
-
-int LABEL = 1; // ラベルをL1から始める
-int LABEL2;
-
-int label() {
-  return LABEL++;
+  return;
+  // printf("条件分岐文の解析の終わり\n");
 }
 
 // 条件式の解析
 // 比較演算子の解析のところを参照 -> それぞれ生成するコードを分ける必要あり
 void parse_compare(FILE *fp) {
-  printf("条件式の解析の始まり\n");
+  // printf("条件式の解析の始まり\n");
   error_func_name = "parse_compare";
-  int label1 = label();
-  int label2 = label();
-  LABEL2 = label2;
-  printf("L%d:\n", label1);
   print_oparser(Oparser(fp));
   printf("add $t8, $v0, $zero\n"); // $t8つかわないと持ってかれる。$t8:条件式左辺
   token = nextToken(fp);
   int comp_symbol = token->type; // 比較演算子の両辺を解析してから分岐処理を生成する
   print_oparser(Oparser(fp)); // $v0に条件式の右辺入ってるよ
   parse_comp_symbol(comp_symbol); // 比較演算子の解析
-  printf("j L%d\n", label1);
-  printf("L%d:\n", label2);
-  printf("条件式の解析の終わり\n");
+  // printf("条件式の解析の終わり\n");
 }
 
 // 比較演算子の解析
@@ -609,21 +608,16 @@ void parse_comp_symbol(int comp_symbol) {
   }else if(comp_symbol == EQGREATER) { // >=
     printf("slt $t8, $t8, $v0\n");
     printf("bne $t8, $zero, $L%d\n",LABEL2);
-    print_nop();
   }else if(comp_symbol == LESS) { // <
     printf("slt $t8, $t8, $v0\n");
     printf("beq $t8, $zero, $L%d\n",LABEL2);
-    print_nop();
   }else if(comp_symbol == EQLESS) { // <=
     printf("slt $t8, $v0, $t8\n");
     printf("bne $t8, $zero, $L%d\n",LABEL2);
-    print_nop();
   }else if(comp_symbol == NEQUAL) {
     printf("bne $t8, $v0, $L%d\n",LABEL2);
-    print_nop();
   }else if(comp_symbol == EQUAL2) {
     printf("beq $t8, $v0, $L%d\n",LABEL2);
-    print_nop();
   }else {
     error_message = "wrong relational sign.";
     parse_error(error_func_name, error_message);
@@ -634,8 +628,8 @@ void parse_comp_symbol(int comp_symbol) {
 // 配列の解析
 void parse_array(FILE *fp) {
   /*LSQUAREが次のtokenになる*/
-  printf("後戻りで呼ばれた\n");
-  printf("配列の解析の始まり\n");
+  // printf("後戻りで呼ばれた\n");
+  // printf("配列の解析の始まり\n");
   error_func_name = "parse_array";
   token = nextToken(fp);
   if(token ->type == LSQUARE){
@@ -673,7 +667,7 @@ void parse_array(FILE *fp) {
     error_message = "one-dimensional array not has LSQUARE";
     parse_error(error_func_name, error_message);
   }
-  printf("配列の解析の終わり\n");
+  // printf("配列の解析の終わり\n");
 }
 
 
@@ -682,7 +676,7 @@ void parse_error(char *error_func_name, char *error_message) {
   if (error_message == NULL) {
     error_message = "sorry, an unknow error occurs...";
   }
-  printf("error in %s: %s\n", error_func_name, error_message);
+  // printf("error in %s: %s\n", error_func_name, error_message);
   exit(1);
 }
 
@@ -697,4 +691,27 @@ void print_data() {
 
 void print_nop(){
   printf("nop\t\t\t\t# (delay slot)\n");
+}
+
+void init_print() {
+  printf("\tINITIAL_GP = 0x10008000\n");
+  printf("\tINITIAL_SP = 0x7ffffffc\n");
+  printf("\t# system call service number\n\n");
+  printf("\tstop_service = 99\n");
+  printf("\t.text\n\t# 初期化ルーチン\n");
+  printf("init:\n");
+  printf("\t# initialize $gp (global pointer) and $sp (stack pointer)\n");
+  printf("\tla\t$gp, INITIAL_GP\t\t# $gp <- 0x10008000 (INITIAL_GP)\n");
+  printf("\tla\t$sp, INITIAL_SP\t\t# $sp <- 0x7ffffffc (INITIAL_SP)\n");
+  printf("\tjal\tmain\t\t\t# jump to `main'\n");
+  print_nop();
+  printf("\tli\t$v0, stop_service\t# $v0 <- 99 (stop_service)\n");
+  printf("\tsyscall\t\t\t\t# stop\n");
+  print_nop();
+  printf("\t# not reach here\n");
+  printf("stop:\t\t\t\t\t# if syscall return\n");
+  printf("\tj stop\t\t\t\t# infinite loop...\n");
+  print_nop();
+  printf("\n\t.text\t0x00001000\n");
+  printf("main:\n");
 }
