@@ -165,17 +165,16 @@ Node* Oparser(FILE *fp){
     node->token->type = tmp;
   }
   temp=pop(0);
-  code_generate(temp);
   return temp;
 }
 
 void printTree(Node *node){
-  if (node->left != NULL || node->right != NULL){
-      printTree(node->left);
-      printTree(node->right);
+  if (node->left != NULL && node->right != NULL){
+    printTree(node->left);
+    printTree(node->right);
   }
   printf("%s ",node->token->string);
- }
+}
 
 
 void freeTree(Node *node) {
@@ -185,65 +184,6 @@ void freeTree(Node *node) {
   }
   free(node->token);
   free(node);
-}
-
-
-// TODO: Generating assembly code of operation
-// 算術式生成用スタック
-char a_stack[100];
-int a_pointer = 0;
-void push_a(val) {
-  a_stack[a_pointer] = val;
-  a_pointer++;
-}
-char pop_a() {
-  char val;
-  val = a_stack[a_pointer];
-  a_pointer--;
-  return val;
-}
-
-void code_generate(Node *node) {
-  if (node->left != NULL || node->right != NULL) {
-    code_generate(node->left); // search from left node
-    code_generate(node->right);
-  }
-  // スタックに格納
-  push_a(*node->token->string);
-  // 数字や識別子ならスタックに格納
-  if (node->token->type == INTEGER || node->token->type == IDENT) {
-    push_a(*node->token->string);
-  }else if (node->token->type == ADD || node->token->type == SUB || node->token->type == MUL || node->token->type == DIV) {
-    // 四則演算ならスタックから2つポップ
-    char *val1 = pop_a();
-    char *val2 = pop_a();
-    // -> 計算するアセンブリを生成,答えを$t1などに一時的に格納する
-    switch (node->token->type) {
-      case ADD:
-        printf("add $t0, %s, %s\n", val1, val2);
-        break;
-      case SUB:
-        printf("sub $t0, %s, %s\n", val1, val2);
-        break;
-      case MUL:
-        printf("mul $t0, %s, %s\n", val1, val2);
-        break;
-      case DIV:
-        printf("div $t0, %s, %s\n", val1, val2);
-        break;
-      default:
-        break;
-    }
-    if (node->left != NULL && node->right != NULL) {
-      // トップノードなら最終的な答えなので$v0に格納する
-      printf("lw  $v0, $t0\n");
-    }else {
-      // TODO: Assemblyで計算した値をどうやってCのスタックに格納する？
-      // $t0を一時的な値としてスタックに格納する
-      // push_a($t0);
-      push_a("404");
-    }
-  }
 }
 
 Node* Array(Node *node,FILE *fp){
@@ -274,15 +214,125 @@ Node* Array(Node *node,FILE *fp){
       if(token3->type == RSQUARE){
         strcat(node->token->string,"]");
       }
-
       token3 = nextToken(fp);
       if(token3->type == LSQUARE){
-        node = Array(node,fp);
+       	node = Array(node,fp);
       }else{
        	ungetToken();
       }
     }
   }
-
   return node;        
+}
+
+
+
+/*
+ * ここ以降、算術式のコード生成の処理
+ */
+
+int first_flag=0; // 最初かどうか(v0に格納するかどうか)を判断するフラッグ。どの深さかカウントもできる.0のときトップノードなのでv0に格納する
+void enable_t(char *tn);
+int available_t();
+int used_t[7];
+char *Tn; // 一時的に値(文字列)を格納しとく場所
+void print_arithmetic(char *str0, char *str1, char *str2, int type/*, FILE *wfp*/);
+
+void print_oparser(Node *node/*, FILE *wfp*/){ // `wfp` is for writing assembly program
+  // char *N1, *N2, *INPUT = NULL;
+  char INPUT[100], N1[100], N2[100];
+
+  if (node->left != NULL && node->right != NULL){
+    first_flag++; 
+    print_oparser(node->left/*, wfp*/);
+    // N1 = (char *)malloc(sizeof(char));
+    strcpy(N1, Tn); // ひとつめのoperandをN1に代入
+    print_oparser(node->right/*, wfp*/);
+    // N2 = (char *)malloc(sizeof(char));
+    strcpy(N2, Tn); // ふたつめのoperandをN2に代入
+    first_flag--;
+    if(first_flag == 0) {
+      Tn = "v0"; // 最後だったらv0に計算結果を入れる
+      enable_t(N1);
+    }else {
+      Tn = N1; // 計算結果はN1に入れて上書きする
+    }
+    // print_nop(wfp);
+    print_arithmetic(Tn, N1, N2, node->token->type/*, wfp*/);
+  }else {
+    // INPUT = (char *)malloc(sizeof(char));
+    if (first_flag != 0) {
+      sprintf(INPUT, "t%d", available_t()); // 使えるtレジスタを検索して値を返す
+    }else {
+      // INPUT = "v0"; // first_flagが0ならv0
+      sprintf(INPUT, "v0");
+    }
+    Tn = INPUT;
+    if(node->token->type == IDENT) {
+      printf("la $t7, _%s\n", node->token->string); // load addressのとき$t7に。.dataでラベル付けして参照できるようにする
+      printf("lw $%s, 0($t7)\n", INPUT);
+    }else if(node->token->type == INTEGER){
+      printf("ori $%s, $zero, %s\n", INPUT, node->token->string); // 直接入れる処理がないのでoriで代用　
+    }
+  }
+  Tn = INPUT;
+}
+
+void init_used_t() {
+  for(int i=0; i<7; i++) {
+    used_t[i] = 0;
+  }
+}
+
+int available_t() {
+  int i;
+  for(i=0; i<7; i++) {
+    if(used_t[i] == 0) {
+      used_t[i] = 1;
+      return i;
+    }
+  }
+  return -1;
+  exit(1); /* ERROR */
+}
+
+void enable_t(char *tn) {
+  // if(dbg2 == 1) {
+  //   printf("used_t %d\n", used_t[5]);
+  //   printf("tn : %s\nn : %d\n", tn, tn[1]-'0');
+  // }
+  if(strcmp(tn, "v0") != 0) { // tnが"v0"でないとき
+    used_t[tn[1] - '0'] = 0;
+  }
+  // if(dbg2 == 1) {
+  //   printf("used_t %d\n", used_t[5]);
+  // }
+}
+
+void print_arithmetic(char *arg1, char *arg2, char *arg3, int token_type) {
+  printf(">>> print_arithmetic called!!!");
+  /*
+  switch (token_type) {
+    case 9:
+      printf("add $%s, $%s, $%s\n", arg1, arg2, arg3);
+      break;
+    case 10:
+      printf("sub $%s, $%s, $%s\n", arg1, arg2, arg3);
+      break;
+    case 11:
+      // printf("mul $%s, $%s, $%s\n", arg1, arg2, arg3);
+      printf("mult $%s, $%s\n" ,arg2, arg3);
+      printf("mflo $%s\n",arg1);
+      break;
+    case 12:
+      // printf("div $%s, $%s, $%s\n", arg1, arg2, arg3);
+      printf("div $%s, $%s\n",arg2, arg3);
+      printf("mflo $%s\n",arg1);
+      break;
+    default:
+      break;
+  }*/
+  if(token_type == ADD) {
+    printf("add $%s, $%s, $%s\n", arg1, arg2, arg3);
+  }
 }

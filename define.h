@@ -95,17 +95,7 @@ typedef struct node {
   struct node *right;
 } Node;
 
-/* 記号 */
-typedef struct {
-  // char name[SYMBOL_CHAR_MAX];
-  int dimension;
-  // int size[DIMENSION_MAX];
-  int labeled;
-} Symbol;
-
 /* 記号表 */
-typedef struct {
-  // Symbol *data[SYMBOL_MAX];
-  int size;
-  int global;
-} SymbolTable;
+struct symbol_table {
+  char id[TOKENMAX]; 
+};

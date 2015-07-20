@@ -14,7 +14,7 @@ static void parse_define_funcs(FILE *fp);
 static void parse_statements(FILE *fp);
 static void parse_statement(FILE *fp);
 static void parse_assign_array(FILE *fp);
-static void parse_assign_value(FILE *fp);
+static void parse_assign_value(FILE *fp, char *to_be_assigned_val);
 static void parse_value(FILE *fp);
 static void parse_argument(FILE *fp);
 static void parse_func(FILE *fp);
@@ -22,8 +22,12 @@ static void parse_define_func(FILE *fp);
 static void parse_while(FILE *fp);
 static void parse_if(FILE *fp);
 static void parse_compare(FILE *fp);
+static void parse_comp_symbol(int comp_symbol);
 static void parse_array(FILE *fp);
 static void parse_error(char *error_func_name, char *error_message);
+static void print_data();
+static void print_nop();
+void print_oparser(Node *node);
 
 char *error_func_name;
 // エラーが起こった理由. 各関数内で定義. 
@@ -31,6 +35,9 @@ char *error_func_name;
 char *error_message;
 
 TokenSt *token;
+
+struct symbol_table symbol[100];
+int add = 0;
 
 // プログラム全体の解析
 // <プログラム> :== <変数宣言部><文集合>
@@ -49,6 +56,7 @@ void parse_program(FILE *fp) {
   ungetToken();
   parse_statements(fp);
   printf("プログラム全体の始まり\n");
+  print_data();
 }
 
 // 変数宣言部の解析
@@ -74,7 +82,8 @@ void parse_define_statement(FILE *fp) {
   if(token->type == DEFINE) {
     token = nextToken(fp);
     if(token->type == IDENT) {
-      printf("%s:  .word 0x0000\n", token->string); // 変数領域の確保
+      struct symbol_table *table =  &symbol[add++]; // 記号表の現在位置を取得
+      strcpy(table->id, token->string); // 記号表に変数名を登録
       token = nextToken(fp);
       if(token->type == LSQUARE) {
         // 配列の宣言
@@ -197,11 +206,12 @@ void parse_statement(FILE *fp) {
   printf("文の解析の始まり\n");
   //  ungetToken();
   token = nextToken(fp);
-  if(token->type == IDENT){ 
+  if(token->type == IDENT){
+    char *identifier = token->string;
     token = nextToken(fp);
     if(token->type == EQUAL){
       ungetToken();
-      parse_assign_value(fp); /*後戻り　識別子*/
+      parse_assign_value(fp, identifier); /*後戻り　識別子*/
     }else if(token->type == LSQUARE) {
       ungetToken();
       parse_assign_array(fp); /*後戻り　識別子*/
@@ -261,7 +271,7 @@ void parse_assign_array(FILE *fp){
       }
     }else{
       ungetToken();
-      Oparser(fp);
+      print_oparser(Oparser(fp));
       token = nextToken(fp);
       if(token->type == SEMICOLON){
         // nothing
@@ -277,7 +287,7 @@ void parse_assign_array(FILE *fp){
 
 // 代入文の解析
 // 後戻り <識別子>はスキップして `=` から
-void parse_assign_value(FILE *fp) {
+void parse_assign_value(FILE *fp, char *to_be_assigned_val) {
   error_func_name = "parse_assign_value";
   printf("代入文の解析のはじまり\n");
   // varに変数名を格納
@@ -288,6 +298,9 @@ void parse_assign_value(FILE *fp) {
     token = nextToken(fp);
     if(token ->type == CALL){
       parse_func(fp);
+      // generating code
+      printf("li $t7, _%s\n", to_be_assigned_val);
+      printf("sw $v0, 0($t7)\n"); // 関数の返り値は$v0に入ってるとする
       token = nextToken(fp);
       if(token->type != SEMICOLON){
         error_message = "Not ends with `;` when to assign value";
@@ -295,7 +308,10 @@ void parse_assign_value(FILE *fp) {
       }
     }else{
       ungetToken();
-      Oparser(fp);   // 例えば計算結果をv0に格納するコードを生成
+      print_oparser(Oparser(fp));   // call Oparser !!
+      // generating code
+      printf("li $t7, _%s\n", to_be_assigned_val);
+      printf("sw $v0, 0($t7)\n"); // 算術式の結果は$v0に入っているとする
       token = nextToken(fp); // unget token
       if(token->type != SEMICOLON){
         error_message = "Not ends with `;` when to assign value";
@@ -455,6 +471,21 @@ void parse_define_func(FILE *fp){
 }
 
 
+// jumpの後にnopがいるよ。
+// L2は常に最後に抜ける場所として確保
+// L1はL2に対応、L3はL4に対応という感じ
+// L1: 
+//     ...
+// L3: 
+//     ...
+// L4: 
+//     ...
+// L2: 
+//     ...
+// ラベルの値をローカルに保存するための変数を用意する
+// ジャンプ先のラベルはグローバルで上書きし続けるとか
+// whileがきた時点でローカルにラベルを2つローカルでとる
+// グローバル変数でラベルどこまで使ってるか保存しておく
 // ループ文の解析
 void parse_while(FILE *fp) {
   int miss = 1;
@@ -543,22 +574,61 @@ void parse_if(FILE *fp){
   printf("条件分岐文の解析の終わり\n");
 }
 
+int LABEL = 1; // ラベルをL1から始める
+int LABEL2;
+
+int label() {
+  return LABEL++;
+}
+
 // 条件式の解析
+// 比較演算子の解析のところを参照 -> それぞれ生成するコードを分ける必要あり
 void parse_compare(FILE *fp) {
   printf("条件式の解析の始まり\n");
   error_func_name = "parse_compare";
-  Oparser(fp);
+  int label1 = label();
+  int label2 = label();
+  LABEL2 = label2;
+  printf("L%d:\n", label1);
+  print_oparser(Oparser(fp));
+  printf("add $t8, $v0, $zero\n"); // $t8つかわないと持ってかれる。$t8:条件式左辺
   token = nextToken(fp);
-  if(token->type == GREATER || token->type == EQGREATER ||
-     token->type == LESS || token->type == EQLESS || 
-     token->type == NEQUAL || token->type == EQUAL2){
-    // nothing here...
+  int comp_symbol = token->type; // 比較演算子の両辺を解析してから分岐処理を生成する
+  print_oparser(Oparser(fp)); // $v0に条件式の右辺入ってるよ
+  parse_comp_symbol(comp_symbol); // 比較演算子の解析
+  printf("j L%d\n", label1);
+  printf("L%d:\n", label2);
+  printf("条件式の解析の終わり\n");
+}
+
+// 比較演算子の解析
+void parse_comp_symbol(int comp_symbol) {
+  if(comp_symbol == GREATER) { // >
+    printf("slt $t8, $v0, $t8\n");
+    printf("beq $t8, $zero, $L%d\n",LABEL2); // LABEL2は現在の深さのwhileの飛ぶ先のラベル
+  }else if(comp_symbol == EQGREATER) { // >=
+    printf("slt $t8, $t8, $v0\n");
+    printf("bne $t8, $zero, $L%d\n",LABEL2);
+    print_nop();
+  }else if(comp_symbol == LESS) { // <
+    printf("slt $t8, $t8, $v0\n");
+    printf("beq $t8, $zero, $L%d\n",LABEL2);
+    print_nop();
+  }else if(comp_symbol == EQLESS) { // <=
+    printf("slt $t8, $v0, $t8\n");
+    printf("bne $t8, $zero, $L%d\n",LABEL2);
+    print_nop();
+  }else if(comp_symbol == NEQUAL) {
+    printf("bne $t8, $v0, $L%d\n",LABEL2);
+    print_nop();
+  }else if(comp_symbol == EQUAL2) {
+    printf("beq $t8, $v0, $L%d\n",LABEL2);
+    print_nop();
   }else {
     error_message = "wrong relational sign.";
     parse_error(error_func_name, error_message);
   }
-  Oparser(fp);
-  printf("条件式の解析の終わり\n");
+  print_nop();
 }
 
 // 配列の解析
@@ -614,4 +684,17 @@ void parse_error(char *error_func_name, char *error_message) {
   }
   printf("error in %s: %s\n", error_func_name, error_message);
   exit(1);
+}
+
+void print_data() {
+  struct symbol_table *table = symbol;
+  printf("\t.data 0x10004000\n");
+  for (int i=0; i<add; i++) {
+    printf("_%s:\t.word 0x0000\n", table->id);
+    table++;
+  }
+}
+
+void print_nop(){
+  printf("nop\t\t\t\t# (delay slot)\n");
 }
