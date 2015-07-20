@@ -162,7 +162,7 @@ Node* Oparser(FILE *fp){
 }
 
 void printTree(Node *node){
-  if (node->left != NULL || node->right != NULL){
+  if (node->left != NULL && node->right != NULL){
     printTree(node->left);
     printTree(node->right);
   }
@@ -225,7 +225,6 @@ Node* Array(Node *node,FILE *fp){
  */
 
 int first_flag=0; // 最初かどうか(v0に格納するかどうか)を判断するフラッグ。どの深さかカウントもできる.0のときトップノードなのでv0に格納する
-char *Tn;
 void enable_t(char *tn);
 int available_t();
 int used_t[7];
@@ -237,10 +236,10 @@ void print_oparser(Node *node/*, FILE *wfp*/){ // `wfp` is for writing assembly 
 
   if (node->left != NULL && node->right != NULL){
     first_flag++; 
-    print_oparser(node->right/*, wfp*/);
+    print_oparser(node->left/*, wfp*/);
     N1 = (char *)malloc(sizeof(char));
     strcpy(N1, Tn); // ひとつめのoperandをN1に代入
-    print_oparser(node->left/*, wfp*/);
+    print_oparser(node->right/*, wfp*/);
     N2 = (char *)malloc(sizeof(char));
     strcpy(N2, Tn); // ふたつめのoperandをN2に代入
     first_flag--;
@@ -256,8 +255,6 @@ void print_oparser(Node *node/*, FILE *wfp*/){ // `wfp` is for writing assembly 
     INPUT = (char *)malloc(sizeof(char));
     if (first_flag != 0) {
       sprintf(INPUT, "t%d", available_t()); // 使えるtレジスタを検索して値を返す
-      // print_input(INPUT, node->token/*, wfp*/); // tレジスタに格納するんだけど、ローカルかグローバルか記号表を見て判断する機能も持ってます...
-      // tレジスタに格納する処理->識別子か数字か判断する
     }else {
       INPUT = "v0"; // first_flagが0ならv0
     }
@@ -304,6 +301,8 @@ void enable_t(char *tn) {
 }
 
 void print_arithmetic(char *arg1, char *arg2, char *arg3, int token_type) {
+  printf(">>> print_arithmetic called!!!");
+  /*
   switch (token_type) {
     case 9:
       printf("add $%s, $%s, $%s\n", arg1, arg2, arg3);
@@ -323,5 +322,8 @@ void print_arithmetic(char *arg1, char *arg2, char *arg3, int token_type) {
       break;
     default:
       break;
+  }*/
+  if(token_type == ADD) {
+    printf("add $%s, $%s, $%s\n", arg1, arg2, arg3);
   }
 }

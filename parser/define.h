@@ -94,3 +94,8 @@ typedef struct node {
   struct node *left;
   struct node *right;
 } Node;
+
+/* 記号表 */
+struct symbol_table {
+  char id[TOKENMAX]; 
+};

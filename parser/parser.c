@@ -24,6 +24,7 @@ static void parse_if(FILE *fp);
 static void parse_compare(FILE *fp);
 static void parse_array(FILE *fp);
 static void parse_error(char *error_func_name, char *error_message);
+static void print_data();
 void print_oparser(Node *node);
 
 char *error_func_name;
@@ -32,6 +33,9 @@ char *error_func_name;
 char *error_message;
 
 TokenSt *token;
+
+struct symbol_table symbol[100];
+int add = 0;
 
 // プログラム全体の解析
 // <プログラム> :== <変数宣言部><文集合>
@@ -48,6 +52,7 @@ void parse_program(FILE *fp) {
   ungetToken();
   parse_statements(fp);
   printf("プログラム全体の始まり\n");
+  print_data();
 }
 
 // 変数宣言部の解析
@@ -195,7 +200,9 @@ void parse_statement(FILE *fp) {
   printf("文の解析の始まり\n");
   //  ungetToken();
   token = nextToken(fp);
-  if(token->type == IDENT){ 
+  if(token->type == IDENT){
+    struct symbol_table *table =  &symbol[add++]; // 記号表の現在位置を取得
+    strcpy(table->id, token->string); // 記号表に変数名を登録
     token = nextToken(fp);
     if(token->type == EQUAL){
       ungetToken();
@@ -602,4 +609,13 @@ void parse_error(char *error_func_name, char *error_message) {
   }
   printf("error in %s: %s\n", error_func_name, error_message);
   exit(1);
+}
+
+void print_data() {
+  struct symbol_table *table = symbol;
+  printf("\t.data 0x10004000\n");
+  for (int i=0; i<add; i++) {
+    printf("_%s:\t.word 0x0000\n", table->id);
+    table++;
+  }
 }
