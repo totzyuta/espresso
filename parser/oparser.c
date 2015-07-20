@@ -218,50 +218,64 @@ Node* Array(Node *node,FILE *fp){
   return node;        
 }
 
-int first_flag=0;
-char *N1, *N2, *Tn, *INPUT;
+
+
+/*
+ * ここ以降、算術式のコード生成の処理
+ */
+
+int first_flag=0; // 最初かどうか(v0に格納するかどうか)を判断するフラッグ。どの深さかカウントもできる.0のときトップノードなのでv0に格納する
+char *Tn;
 void enable_t(char *tn);
 int available_t();
+int used_t[7];
+char *Tn; // 一時的に値(文字列)を格納しとく場所
+void print_arithmetic(char *str0, char *str1, char *str2, int type/*, FILE *wfp*/);
 
-void print_oparser(Node *node, FILE *wfp){ // `wfp` is for what?
-  int i = 0;
-  *N1 = NULL;
-  *N2 = NULL;
-  INPUT = (char *)malloc(sizeof(char));
-  N1 = (char *)malloc(sizeof(char));
-  N2 = (char *)malloc(sizeof(char));
+void print_oparser(Node *node/*, FILE *wfp*/){ // `wfp` is for writing assembly program
+  char *N1, *N2, *INPUT = NULL;
 
   if (node->left != NULL && node->right != NULL){
-    first_flag++;
-    print_oparser(node->right, wfp);
-    strcpy(N1, Tn);
-    print_oparser(node->left, wfp);
-    strcpy(N2, Tn);
+    first_flag++; 
+    print_oparser(node->right/*, wfp*/);
+    N1 = (char *)malloc(sizeof(char));
+    strcpy(N1, Tn); // ひとつめのoperandをN1に代入
+    print_oparser(node->left/*, wfp*/);
+    N2 = (char *)malloc(sizeof(char));
+    strcpy(N2, Tn); // ふたつめのoperandをN2に代入
     first_flag--;
     if(first_flag == 0) {
-      Tn = "v0";
+      Tn = "v0"; // 最後だったらv0に計算結果を入れる
       enable_t(N1);
     }else {
-      Tn = N1;
+      Tn = N1; // 計算結果はN1に入れて上書きする
     }
-    print_nop(wfp);
-    print_arithmetic(Tn, N1, N2, node->token->type, wfp);
+    // print_nop(wfp);
+    print_arithmetic(Tn, N1, N2, node->token->type/*, wfp*/);
   }else {
-    if(dbg4 != 0)
-      printf("Start Input Section\n"); /* DEBUG */
+    INPUT = (char *)malloc(sizeof(char));
     if (first_flag != 0) {
-      sprintf(INPUT, "t%d", available_t());
-      print_input(INPUT, node->token, wfp); // token->string 文字列をt0に代入的な
+      sprintf(INPUT, "t%d", available_t()); // 使えるtレジスタを検索して値を返す
+      // print_input(INPUT, node->token/*, wfp*/); // tレジスタに格納するんだけど、ローカルかグローバルか記号表を見て判断する機能も持ってます...
+      // tレジスタに格納する処理->識別子か数字か判断する
     }else {
-      INPUT = "v0";
-      print_input(INPUT, node->token, wfp);
+      INPUT = "v0"; // first_flagが0ならv0
     }
     Tn = INPUT;
-    print_input(INPUT, node->token, wfp);
+    if(node->token->type == IDENT) {
+      printf("la $t7, _%s\n", node->token->string); // load addressのとき$t7に。.dataでラベル付けして参照できるようにする
+      printf("lw $%s, 0($t7)\n", INPUT);
+    }else if(node->token->type == INTEGER){
+      printf("ori $%s, $zero, %s\n", INPUT, node->token->string); // 直接入れる処理がないのでoriで代用　
+    }
   }
   Tn = INPUT;
-  if(dbg4 != 0)
-    printf("End Input Section\n"); /* DEBUG */
+}
+
+void init_used_t() {
+  for(int i=0; i<7; i++) {
+    used_t[i] = 0;
+  }
 }
 
 int available_t() {
@@ -277,18 +291,37 @@ int available_t() {
 }
 
 void enable_t(char *tn) {
-  if(dbg2 == 1) {
-    printf("used_t %d\n", used_t[5]);
-    printf("tn : %s\nn : %d\n", tn, tn[1]-'0');
-  }
-  if(strcmp(tn, "v0") != 0) {
+  // if(dbg2 == 1) {
+  //   printf("used_t %d\n", used_t[5]);
+  //   printf("tn : %s\nn : %d\n", tn, tn[1]-'0');
+  // }
+  if(strcmp(tn, "v0") != 0) { // tnが"v0"でないとき
     used_t[tn[1] - '0'] = 0;
   }
-  if(dbg2 == 1) {
-    printf("used_t %d\n", used_t[5]);
-  }
+  // if(dbg2 == 1) {
+  //   printf("used_t %d\n", used_t[5]);
+  // }
 }
 
-void print_arithmetic() {
-  // TODO: 算術式をassemblyで出力
+void print_arithmetic(char *arg1, char *arg2, char *arg3, int token_type) {
+  switch (token_type) {
+    case 9:
+      printf("add $%s, $%s, $%s\n", arg1, arg2, arg3);
+      break;
+    case 10:
+      printf("sub $%s, $%s, $%s\n", arg1, arg2, arg3);
+      break;
+    case 11:
+      // printf("mul $%s, $%s, $%s\n", arg1, arg2, arg3);
+      printf("mult $%s, $%s\n" ,arg2, arg3);
+      printf("mflo $%s\n",arg1);
+      break;
+    case 12:
+      // printf("div $%s, $%s, $%s\n", arg1, arg2, arg3);
+      printf("div $%s, $%s\n",arg2, arg3);
+      printf("mflo $%s\n",arg1);
+      break;
+    default:
+      break;
+  }
 }

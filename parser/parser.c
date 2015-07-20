@@ -24,6 +24,7 @@ static void parse_if(FILE *fp);
 static void parse_compare(FILE *fp);
 static void parse_array(FILE *fp);
 static void parse_error(char *error_func_name, char *error_message);
+void print_oparser(Node *node);
 
 char *error_func_name;
 // エラーが起こった理由. 各関数内で定義. 
@@ -258,7 +259,7 @@ void parse_assign_array(FILE *fp){
       }
     }else{
       ungetToken();
-      Oparser(fp);
+      print_oparser(Oparser(fp));
       token = nextToken(fp);
       if(token->type == SEMICOLON){
         // nothing
@@ -289,7 +290,7 @@ void parse_assign_value(FILE *fp) {
       }
     }else{
       ungetToken();
-      Oparser(fp);   // call Oparser !!
+      print_oparser(Oparser(fp));   // call Oparser !!
       token = nextToken(fp); // unget token
       if(token->type != SEMICOLON){
         error_message = "Not ends with `;` when to assign value";
@@ -534,7 +535,7 @@ void parse_if(FILE *fp){
 void parse_compare(FILE *fp) {
   printf("条件式の解析の始まり\n");
   error_func_name = "parse_compare";
-  Oparser(fp);
+  print_oparser(Oparser(fp));
   token = nextToken(fp);
   if(token->type == GREATER || token->type == EQGREATER ||
      token->type == LESS || token->type == EQLESS || 
@@ -544,7 +545,7 @@ void parse_compare(FILE *fp) {
     error_message = "wrong relational sign.";
     parse_error(error_func_name, error_message);
   }
-  Oparser(fp);
+  print_oparser(Oparser(fp));
   printf("条件式の解析の終わり\n");
 }
 
