@@ -14,7 +14,7 @@ static void parse_define_funcs(FILE *fp);
 static void parse_statements(FILE *fp);
 static void parse_statement(FILE *fp);
 static void parse_assign_array(FILE *fp);
-static void parse_assign_value(FILE *fp);
+static void parse_assign_value(FILE *fp, char *to_be_assigned_val);
 static void parse_value(FILE *fp);
 static void parse_argument(FILE *fp);
 static void parse_func(FILE *fp);
@@ -203,10 +203,11 @@ void parse_statement(FILE *fp) {
   //  ungetToken();
   token = nextToken(fp);
   if(token->type == IDENT){
+    char *identifier = token->string;
     token = nextToken(fp);
     if(token->type == EQUAL){
       ungetToken();
-      parse_assign_value(fp); /*後戻り　識別子*/
+      parse_assign_value(fp, identifier); /*後戻り　識別子*/
     }else if(token->type == LSQUARE) {
       ungetToken();
       parse_assign_array(fp); /*後戻り　識別子*/
@@ -282,7 +283,7 @@ void parse_assign_array(FILE *fp){
 
 // 代入文の解析
 // 後戻り <識別子>はスキップして `=` から
-void parse_assign_value(FILE *fp) {
+void parse_assign_value(FILE *fp, char *to_be_assigned_val) {
   error_func_name = "parse_assign_value";
   printf("代入文の解析のはじまり\n");
   token = nextToken(fp); // unget token: これでtoken-stringは`=`になってるはず　 
@@ -290,6 +291,9 @@ void parse_assign_value(FILE *fp) {
     token = nextToken(fp);
     if(token ->type == CALL){
       parse_func(fp);
+      // generating code
+      printf("li $t7, _%s\n", to_be_assigned_val);
+      printf("sw $v0, 0($t7)\n"); // 関数の返り値は$v0に入ってるとする
       token = nextToken(fp);
       if(token->type != SEMICOLON){
         error_message = "Not ends with `;` when to assign value";
@@ -298,6 +302,9 @@ void parse_assign_value(FILE *fp) {
     }else{
       ungetToken();
       print_oparser(Oparser(fp));   // call Oparser !!
+      // generating code
+      printf("li $t7, _%s\n", to_be_assigned_val);
+      printf("sw $v0, 0($t7)\n"); // 算術式の結果は$v0に入っているとする
       token = nextToken(fp); // unget token
       if(token->type != SEMICOLON){
         error_message = "Not ends with `;` when to assign value";
