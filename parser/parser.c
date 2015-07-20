@@ -78,6 +78,8 @@ void parse_define_statement(FILE *fp) {
   if(token->type == DEFINE) {
     token = nextToken(fp);
     if(token->type == IDENT) {
+      struct symbol_table *table =  &symbol[add++]; // 記号表の現在位置を取得
+      strcpy(table->id, token->string); // 記号表に変数名を登録
       token = nextToken(fp);
       if(token->type == LSQUARE) {
         // 配列の宣言
@@ -201,8 +203,6 @@ void parse_statement(FILE *fp) {
   //  ungetToken();
   token = nextToken(fp);
   if(token->type == IDENT){
-    struct symbol_table *table =  &symbol[add++]; // 記号表の現在位置を取得
-    strcpy(table->id, token->string); // 記号表に変数名を登録
     token = nextToken(fp);
     if(token->type == EQUAL){
       ungetToken();
