@@ -22,9 +22,11 @@ static void parse_define_func(FILE *fp);
 static void parse_while(FILE *fp);
 static void parse_if(FILE *fp);
 static void parse_compare(FILE *fp);
+static void parse_comp_symbol(int comp_symbol);
 static void parse_array(FILE *fp);
 static void parse_error(char *error_func_name, char *error_message);
 static void print_data();
+static void print_nop();
 void print_oparser(Node *node);
 
 char *error_func_name;
@@ -457,6 +459,21 @@ void parse_define_func(FILE *fp){
 }
 
 
+// jumpの後にnopがいるよ。
+// L2は常に最後に抜ける場所として確保
+// L1はL2に対応、L3はL4に対応という感じ
+// L1: 
+//     ...
+// L3: 
+//     ...
+// L4: 
+//     ...
+// L2: 
+//     ...
+// ラベルの値をローカルに保存するための変数を用意する
+// ジャンプ先のラベルはグローバルで上書きし続けるとか
+// whileがきた時点でローカルにラベルを2つローカルでとる
+// グローバル変数でラベルどこまで使ってるか保存しておく
 // ループ文の解析
 void parse_while(FILE *fp) {
   int miss = 1;
@@ -545,22 +562,61 @@ void parse_if(FILE *fp){
   printf("条件分岐文の解析の終わり\n");
 }
 
+int LABEL = 1; // ラベルをL1から始める
+int LABEL2;
+
+int label() {
+  return LABEL++;
+}
+
 // 条件式の解析
+// 比較演算子の解析のところを参照 -> それぞれ生成するコードを分ける必要あり
 void parse_compare(FILE *fp) {
   printf("条件式の解析の始まり\n");
   error_func_name = "parse_compare";
+  int label1 = label();
+  int label2 = label();
+  LABEL2 = label2;
+  printf("L%d:\n", label1);
   print_oparser(Oparser(fp));
+  printf("add $t8, $v0, $zero\n"); // $t8つかわないと持ってかれる。$t8:条件式左辺
   token = nextToken(fp);
-  if(token->type == GREATER || token->type == EQGREATER ||
-     token->type == LESS || token->type == EQLESS || 
-     token->type == NEQUAL || token->type == EQUAL2){
-    // nothing here...
+  int comp_symbol = token->type; // 比較演算子の両辺を解析してから分岐処理を生成する
+  print_oparser(Oparser(fp)); // $v0に条件式の右辺入ってるよ
+  parse_comp_symbol(comp_symbol); // 比較演算子の解析
+  printf("j L%d\n", label1);
+  printf("L%d:\n", label2);
+  printf("条件式の解析の終わり\n");
+}
+
+// 比較演算子の解析
+void parse_comp_symbol(int comp_symbol) {
+  if(comp_symbol == GREATER) { // >
+    printf("slt $t8, $v0, $t8\n");
+    printf("beq $t8, $zero, $L%d\n",LABEL2); // LABEL2は現在の深さのwhileの飛ぶ先のラベル
+  }else if(comp_symbol == EQGREATER) { // >=
+    printf("slt $t8, $t8, $v0\n");
+    printf("bne $t8, $zero, $L%d\n",LABEL2);
+    print_nop();
+  }else if(comp_symbol == LESS) { // <
+    printf("slt $t8, $t8, $v0\n");
+    printf("beq $t8, $zero, $L%d\n",LABEL2);
+    print_nop();
+  }else if(comp_symbol == EQLESS) { // <=
+    printf("slt $t8, $v0, $t8\n");
+    printf("bne $t8, $zero, $L%d\n",LABEL2);
+    print_nop();
+  }else if(comp_symbol == NEQUAL) {
+    printf("bne $t8, $v0, $L%d\n",LABEL2);
+    print_nop();
+  }else if(comp_symbol == EQUAL2) {
+    printf("beq $t8, $v0, $L%d\n",LABEL2);
+    print_nop();
   }else {
     error_message = "wrong relational sign.";
     parse_error(error_func_name, error_message);
   }
-  print_oparser(Oparser(fp));
-  printf("条件式の解析の終わり\n");
+  print_nop();
 }
 
 // 配列の解析
@@ -625,4 +681,8 @@ void print_data() {
     printf("_%s:\t.word 0x0000\n", table->id);
     table++;
   }
+}
+
+void print_nop(){
+  printf("nop\t\t\t\t# (delay slot)\n");
 }
