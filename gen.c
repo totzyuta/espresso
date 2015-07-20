@@ -1,3 +1,5 @@
+// Code Generator
+
 #include <stdio.h>
 #include "define.h"
 
@@ -6,22 +8,11 @@ void printTree(Node *node);
 
 static int top = 0;
 
+// 算術式のCode Generator
 static void OparserCode(Node *node) {
-  if (node->left == NULL) {
-    printf("(add, T%d, %s, 0)\n", top, node->token->string);
-    top++;
-  }else {
-    OparserCode(node->left);
-    OparserCode(node->right);
-    printf("(%s, T%d, T%d, T%d)\n", node->token->string,
-        top-2, top-2, top-1);
-    top--;
-  }
-}
-
-void Code(FILE *fp) {
-  Node *node = Oparser(fp);
-  printTree(node);
-  printf("\n");
-  OparserCode(node);
+  // stackを生成する
+  printf(".space 400"); // 400バイト分のデータを確保する
+  // レジスタを一つスタック専用ポインタにする
+  // スタック領域を確保する
+  // スタックに対するPOP, PUSHの動作をアセンブリで実現する
 }

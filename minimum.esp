@@ -1,0 +1,11 @@
+define a;
+
+func () {
+  return a;
+}
+
+a = 0+1;
+
+if (a==0) {
+  a = 1;
+}

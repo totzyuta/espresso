@@ -37,6 +37,8 @@ TokenSt *token;
 void parse_program(FILE *fp) {
   printf("プログラム全体の解析の始まり\n");
   printf("変数宣言部の解析の始まり\n");
+  // 識別子名を格納
+  printf(".data\n"); // 変数領域の確保開始
   parse_define(fp);
   printf("変数宣言部の解析のおわり\n");
   token = nextToken(fp);
@@ -72,6 +74,7 @@ void parse_define_statement(FILE *fp) {
   if(token->type == DEFINE) {
     token = nextToken(fp);
     if(token->type == IDENT) {
+      printf("%s:  .word 0x0000\n", token->string); // 変数領域の確保
       token = nextToken(fp);
       if(token->type == LSQUARE) {
         // 配列の宣言
@@ -277,6 +280,9 @@ void parse_assign_array(FILE *fp){
 void parse_assign_value(FILE *fp) {
   error_func_name = "parse_assign_value";
   printf("代入文の解析のはじまり\n");
+  // varに変数名を格納
+  char *var;
+  var = token->string; // TODO ここだと`=`が入ってしまう
   token = nextToken(fp); // unget token: これでtoken-stringは`=`になってるはず　 
   if(token->type == EQUAL){
     token = nextToken(fp);
@@ -289,12 +295,14 @@ void parse_assign_value(FILE *fp) {
       }
     }else{
       ungetToken();
-      Oparser(fp);   // call Oparser !!
+      Oparser(fp);   // 例えば計算結果をv0に格納するコードを生成
       token = nextToken(fp); // unget token
       if(token->type != SEMICOLON){
         error_message = "Not ends with `;` when to assign value";
         parse_error(error_func_name, error_message);
       }
+      printf("li $t0, %s\n", var);
+      printf("sw $v0, 0($t0)\n");
     }
   }else{
     parse_error(error_func_name, error_message);

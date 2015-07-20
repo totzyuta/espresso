@@ -10,6 +10,7 @@ void freeTree(Node *node);
 Node* Array(Node *node, FILE *fp);
 static Node *Stack[2][MaxStack];
 static int Sptr[2]={0,0}; 
+void code_generate(Node *node);
 
 static OrderType orderMatrix[][5] = {
   // row:TopNode, column:Operator
@@ -187,16 +188,16 @@ void freeTree(Node *node) {
 }
 
 
-// TODO: Generating assembly code 
+// TODO: Generating assembly code of operation
+// 算術式生成用スタック
 char a_stack[100];
 int a_pointer = 0;
-
 void push_a(val) {
   a_stack[a_pointer] = val;
   a_pointer++;
 }
-
-int pop_a() {
+char pop_a() {
+  char val;
   val = a_stack[a_pointer];
   a_pointer--;
   return val;
@@ -208,24 +209,40 @@ void code_generate(Node *node) {
     code_generate(node->right);
   }
   // スタックに格納
-  push_a(node->token->string);
+  push_a(*node->token->string);
   // 数字や識別子ならスタックに格納
-  if (node->token->type == IDENT || node->token->type == INT /*TODO:記号チェック*/) {
-    push_a(node->token->string);
-  }else if (node->token->type == ADD || node->token->type == SUB || node->token->type == DIV || node->token->type == MULT /*TODO:記号チェック*/) {
+  if (node->token->type == INTEGER || node->token->type == IDENT) {
+    push_a(*node->token->string);
+  }else if (node->token->type == ADD || node->token->type == SUB || node->token->type == MUL || node->token->type == DIV) {
     // 四則演算ならスタックから2つポップ
-    val1 = pop_a();
-    val2 = pop_a();
+    char *val1 = pop_a();
+    char *val2 = pop_a();
     // -> 計算するアセンブリを生成,答えを$t1などに一時的に格納する
     switch (node->token->type) {
       case ADD:
-        printf("add $t0, $t1, $t2");
+        printf("add $t0, %s, %s\n", val1, val2);
+        break;
+      case SUB:
+        printf("sub $t0, %s, %s\n", val1, val2);
+        break;
+      case MUL:
+        printf("mul $t0, %s, %s\n", val1, val2);
+        break;
+      case DIV:
+        printf("div $t0, %s, %s\n", val1, val2);
         break;
       default:
         break;
     }
-    printf("");
-    // -> $t1などの一時的な値をスタックに格納する
+    if (node->left != NULL && node->right != NULL) {
+      // トップノードなら最終的な答えなので$v0に格納する
+      printf("lw  $v0, $t0\n");
+    }else {
+      // TODO: Assemblyで計算した値をどうやってCのスタックに格納する？
+      // $t0を一時的な値としてスタックに格納する
+      // push_a($t0);
+      push_a("404");
+    }
   }
 }
 
