@@ -20,12 +20,8 @@ int main(int argc, char *argv[]){
     exit(1);
   }
   
+  // プログラムを解析してアセンブリプログラムを出力する
   parse_program(fp);
-
-  printf("######################\n");
-  printf("# Program Ends! Bye! #\n");
-  printf("######################\n");
-
 }
 
 

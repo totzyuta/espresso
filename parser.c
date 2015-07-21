@@ -684,7 +684,8 @@ void parse_error(char *error_func_name, char *error_message) {
 void print_data() {
   struct symbol_table *table = symbol;
   printf("\t.data 0x10004000\n");
-  for (int i=0; i<add; i++) {
+  int i;
+  for (i=0; i<add; i++) {
     printf("_%s:\t.word 0x0000\n", table->id);
     table++;
   }

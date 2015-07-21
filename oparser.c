@@ -279,7 +279,8 @@ void print_oparser(Node *node/*, FILE *wfp*/){ // `wfp` is for writing assembly 
 }
 
 void init_used_t() {
-  for(int i=0; i<7; i++) {
+  int i;
+  for(i=0; i<7; i++) {
     used_t[i] = 0;
   }
 }
