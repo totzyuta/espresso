@@ -58,7 +58,7 @@ void parse_program(FILE *fp) {
   ungetToken();
   parse_statements(fp);
   // printf("プログラム全体の始まり\n");
-  printf("j $ra\n");
+  printf("jr $ra\n");
   print_data();
 }
 
@@ -518,6 +518,7 @@ void parse_while(FILE *fp) {
     }
   }
   printf("j $L%d\n", label1);
+  printf("nop\n");
   printf("$L%d:\n", label2);
   if(miss == 1){
     error_message = "wrong syntax in while loop";
