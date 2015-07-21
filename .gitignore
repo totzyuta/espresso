@@ -1,5 +1,8 @@
-*.o
 parser
 *.aux
 *.dvi
 *.log
+lex.o
+oparser.o
+parser.o
+main.o
