@@ -121,9 +121,17 @@
 
 \begin{enumerate}
 \item{字句解析}
-プログラムのテキストをある特定の字句に分割し，
-それぞれに対応したタイプを付与する．
-(e.g int \verb|=>| 予約語，sum \verb|=>| 識別子， etc..)
+lex.cに定義されているnextToken()関数で主要部分となる字句解析の処理を行っている。
+
+字句解析では、大まかに以下のような流れでプログラムをトークン列に分解している。
+
+1. ファイルから次の1文字を読み込み、遷移表をもとに状態を遷移する
+2. 状態を確認して終了状態なら3の処理へ、終了状態でなければ1を繰り返す
+3. それまでに読み込んだ文字列と、得られた文字列に合致する型情報を格納する
+3. そのトークンを返り値として関数を終了する
+
+% (e.g. int \verb|=>| 予約語，sum \verb|=>| 識別子， etc..)
+
 
 \item{演算子順位構文解析}
 算術式を解析するために用いる方法．
@@ -141,6 +149,7 @@
 \$ & \verb|<| & \verb|<| & \verb|<| & × & 終了 \\ \hline
 \end{tabular}
 \end{table}
+
 
 \item{再帰下降型構文解析}
 算術式以外を解析するために用いる方法．
@@ -206,46 +215,31 @@ http://jikken1.arc.cs.okayama-u.ac.jp/gitbucket/09425566/compiler
 %   SECTION 8   %
 %%%%%%%%%%%%%%%%%
 
-\section{最終課題の実行結果}%ステップ数も表記する．
+\section{最終課題の実行結果} %ステップ数も表記する．
 
 \begin{enumerate}
 \item {1 から 10 までの数の和 }
   \begin{itemize}
   \item
-    プログラム：sum.cm
+    プログラム：sum.esp
   \item
-    実行結果：55~(0x10004004)
+    実行結果：55~(0x10004004) %TODO
   \item
-    ステップ数：360 instructions
+    ステップ数：360 instructions %TODO
   \end{itemize}
 \item {階乗の計算}
   \begin{itemize}
   \item
-    プログラム：fact.cm
+    プログラム：fact.esp
   \item
-    実行結果：120~(0x10004004)
+    実行結果：120~(0x10004004) %TODO
   \item
-    ステップ数：195 instructions
+    ステップ数：195 instructions %TODO
   \end{itemize}
 \item {エラトステネスのふるい}
-  \begin{itemize}
-  \item
-    プログラム：prime.cm
-  \item
-    実行結果：2,3,5,7,11\dots
-  \item
-    ステップ数：86301 instructions
-  \end{itemize}
-  ※与えられたアルゴリズムでは探索に無駄が多いため，処理を省いている．
+  関数のコード生成部分を作成できなかったため実現できなかった。
 \item {行列積の計算}
-  \begin{itemize}
-  \item
-    プログラム：matrix.cm
-  \item
-    実行結果：19,22,43,50
-  \item
-    ステップ数：1425 instructions
-  \end{itemize}
+  配列を扱う部分のコード生成処理を作成できなかったため実現できなかった。
 \item {クイックソート}\\
   ローカル変数を作成出来なかったため，作成出来なかった．
 \end{enumerate}
