@@ -2,11 +2,9 @@
 #include <stdlib.h>
 #include "define.h"
 
-/* 使い方表示関数のプロトタイプ宣言                */
-/* このファイルでしか使わないので staticにしている */
+// 使い方表示関数のプロトタイプ宣言
 static void usage(char *s);
 Node *parse_program(FILE *fp);
-
 
 int main(int argc, char *argv[]){
   FILE		*fp;
@@ -20,16 +18,15 @@ int main(int argc, char *argv[]){
     exit(1);
   }
   
+  // ソースコードを解析してアセンブリコードを標準出力
   parse_program(fp);
 
-  printf("######################\n");
-  printf("# Program Ends! Bye! #\n");
-  printf("######################\n");
-
+  // printf("######################\n");
+  // printf("# Program Ends! Bye! #\n");
+  // printf("######################\n");
 }
 
-
-/*--< このプログラムの説明を表示 >--*/
+// このプログラムの説明を表示
 static void usage(char *s){
   fprintf(stderr, "Usage: %s < filename >\n",s);
   exit(1);

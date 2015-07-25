@@ -638,31 +638,31 @@ void parse_array(FILE *fp) {
     if(token->type == IDENT|| token->type == INTEGER ){
       token = nextToken(fp);
       if(token ->type != RSQUARE){ /*一次元配列の終了へ*/
-	error_message = "one-dimensional array not has RSQUARE";
-	parse_error(error_func_name, error_message);
+        error_message = "one-dimensional array not has RSQUARE";
+        parse_error(error_func_name, error_message);
       }
       token = nextToken(fp); /*次にRSQUARが存在するか判断*/
       if(token->type == LSQUARE){
-	token = nextToken(fp);
-	if(token->type == IDENT || token->type == INTEGER){
-	  token = nextToken(fp);
-	  if(token->type == RSQUARE){
-	    /*二次元配列の終了*/
-	  }else{
-	    error_message = "two-dimensional array not has RSQUARE";
-	    parse_error(error_func_name, error_message);
-	  }
-	}else{
-	  error_message = "two-dimensional array not has IDENT or INTEGER";
-	  parse_error(error_func_name, error_message);
-	}
+        token = nextToken(fp);
+        if(token->type == IDENT || token->type == INTEGER){
+          token = nextToken(fp);
+          if(token->type == RSQUARE){
+            /*二次元配列の終了*/
+          }else{
+            error_message = "two-dimensional array not has RSQUARE";
+            parse_error(error_func_name, error_message);
+          }
+        }else{
+          error_message = "two-dimensional array not has IDENT or INTEGER";
+          parse_error(error_func_name, error_message);
+        }
       }else{
-	ungetToken();
-	/*一次元配列の終了*/
+        ungetToken();
+        /*一次元配列の終了*/
       }
     }else{
-	  error_message = "one-dimensional array not has IDENT or INTEGER";
-	  parse_error(error_func_name, error_message);
+      error_message = "one-dimensional array not has IDENT or INTEGER";
+      parse_error(error_func_name, error_message);
     }
   }else{
     error_message = "one-dimensional array not has LSQUARE";

@@ -114,36 +114,20 @@ TokenSt *nextToken(FILE *fp){
 static CharType charToCharType(int c){
   // DEBUG
   // printf("charToCharType() Called! Argument: %d \n", c);
-
-  if ( (c>='0') && (c<='9') ) 
-    return number;
-
-  if ( ((c>='a') && (c<='z')) || ((c>='A') && (c<='Z')) ) 
-    return alpha;
-
-  if ( (c=='>') || (c=='<') ) 
-    return brackets;
-
-  if (c=='=') 
-    return eq;
-
-  if ( (c=='+') || (c=='-') || (c=='*') || (c=='/') || (c==';') || (c=='(') || (c==')') || (c=='{') || (c=='}') || (c=='[') || (c==']') || (c==',') )
-    return sign;
-
-  if (c=='!') 
-    return excl;
-
-  if((c==' ')||(c=='\n')||(c=='\t')) 
-    return delim;
-
+  if ( (c>='0') && (c<='9') ) return number;
+  if ( ((c>='a') && (c<='z')) || ((c>='A') && (c<='Z')) ) return alpha;
+  if ( (c=='>') || (c=='<') ) return brackets;
+  if (c=='=') return eq;
+  if ( (c=='+') || (c=='-') || (c=='*') || (c=='/') || (c==';') || (c=='(') || (c==')') || (c=='{') || (c=='}') || (c=='[') || (c==']') || (c==',') ) return sign;
+  if (c=='!') return excl;
+  if((c==' ')||(c=='\n')||(c=='\t')) return delim;
   return error;
 }
 
 /*--< (トークンの)文字列と直前の状態を入力とし,トークンの種類を返す関数 >--*/
 static TokenType whichTokenType(char *s, StateType state){
-  // debug
+  // DEBUG
   // printf("whichTokenType() Called!\n");
-
   if (state == Int) return INTEGER;
   if (strcmp(s, "define") == 0) return DEFINE;
   if (strcmp(s, "if") == 0) return IF;
