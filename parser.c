@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "define.h"
+#include "gen.c"
 
 TokenSt *nextToken(FILE *fp);
 void ungetToken(void);
@@ -28,7 +29,7 @@ static void parse_error(char *error_func_name, char *error_message);
 static void print_data();
 static void print_nop();
 static void init_print();
-void print_oparser(Node *node);
+void gen_code_operation(Node *node);
 
 char *error_func_name;
 // エラーが起こった理由. 各関数内で定義. 
@@ -274,7 +275,7 @@ void parse_assign_array(FILE *fp){
       }
     }else{
       ungetToken();
-      print_oparser(Oparser(fp));
+      gen_code_operation(Oparser(fp));
       token = nextToken(fp);
       if(token->type == SEMICOLON){
         // nothing
@@ -311,7 +312,7 @@ void parse_assign_value(FILE *fp, char *to_be_assigned_val) {
       }
     }else{
       ungetToken();
-      print_oparser(Oparser(fp));   // call Oparser !!
+      gen_code_operation(Oparser(fp));   // call Oparser !!
       // generating code
       printf("li $t7, _%s\n", to_be_assigned_val);
       printf("sw $v0, 0($t7)\n"); // 算術式の結果は$v0に入っているとする
@@ -592,11 +593,11 @@ void parse_if(FILE *fp){
 void parse_compare(FILE *fp) {
   // printf("条件式の解析の始まり\n");
   error_func_name = "parse_compare";
-  print_oparser(Oparser(fp));
+  gen_code_operation(Oparser(fp));
   printf("add $t8, $v0, $zero\n"); // $t8つかわないと持ってかれる。$t8:条件式左辺
   token = nextToken(fp);
   int comp_symbol = token->type; // 比較演算子の両辺を解析してから分岐処理を生成する
-  print_oparser(Oparser(fp)); // $v0に条件式の右辺入ってるよ
+  gen_code_operation(Oparser(fp)); // $v0に条件式の右辺入ってるよ
   parse_comp_symbol(comp_symbol); // 比較演算子の解析
   // printf("条件式の解析の終わり\n");
 }
