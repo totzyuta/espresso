@@ -1,0 +1,58 @@
+	INITIAL_GP = 0x10008000
+	INITIAL_SP = 0x7ffffffc
+	# system call service number
+
+	stop_service = 99
+	.text
+	# 初期化ルーチン
+init:
+	# initialize $gp (global pointer) and $sp (stack pointer)
+	la	$gp, INITIAL_GP		# $gp <- 0x10008000 (INITIAL_GP)
+	la	$sp, INITIAL_SP		# $sp <- 0x7ffffffc (INITIAL_SP)
+	jal	main			# jump to `main'
+nop				# (delay slot)
+	li	$v0, stop_service	# $v0 <- 99 (stop_service)
+	syscall				# stop
+nop				# (delay slot)
+	# not reach here
+stop:					# if syscall return
+	j stop				# infinite loop...
+nop				# (delay slot)
+
+	.text	0x00001000
+main:
+ori $v0, $zero, 1
+li $t7, _fact
+sw $v0, 0($t7)
+ori $v0, $zero, 1
+li $t7, _i
+sw $v0, 0($t7)
+$L1:
+la $t7, _i
+lw $v0, 0($t7)
+add $t8, $v0, $zero
+ori $v0, $zero, 6
+slt $t8, $t8, $v0
+beq $t8, $zero, $L2
+nop				# (delay slot)
+la $t7, _fact
+lw $t0, 0($t7)
+la $t7, _i
+lw $t1, 0($t7)
+mult $t0, $t1
+mflo $v0
+li $t7, _fact
+sw $v0, 0($t7)
+la $t7, _i
+lw $t0, 0($t7)
+ori $t2, $zero, 1
+add $v0, $t0, $t2
+li $t7, _i
+sw $v0, 0($t7)
+j $L1
+nop
+$L2:
+jr $ra
+	.data 0x10004000
+_i:	.word 0x0000
+_fact:	.word 0x0000

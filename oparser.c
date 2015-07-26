@@ -224,6 +224,3 @@ Node* Array(Node *node,FILE *fp){
   }
   return node;        
 }
-
-
-
