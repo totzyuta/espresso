@@ -12,7 +12,7 @@ void enable_t(char *tn);
 int available_t();
 int used_t[7];
 char *Tn; // 一時的に値(文字列)を格納しとく場所
-void print_arithmetic(char *str0, char *str1, char *str2, int type);
+void gen_operation(char *str0, char *str1, char *str2, int type);
 
 void gen_code_operation(Node *node){ 
   // char *N1, *N2, *INPUT = NULL;
@@ -33,7 +33,7 @@ void gen_code_operation(Node *node){
     }else {
       Tn = N1; // 計算結果はN1に入れて上書きする
     }
-    print_arithmetic(Tn, N1, N2, node->token->type);
+    gen_operation(Tn, N1, N2, node->token->type);
   }else {
     // INPUT = (char *)malloc(sizeof(char));
     if (first_flag != 0) {
@@ -77,7 +77,7 @@ void enable_t(char *tn) {
   }
 }
 
-void print_arithmetic(char *arg1, char *arg2, char *arg3, int token_type) {
+void gen_operation(char *arg1, char *arg2, char *arg3, int token_type) {
   switch (token_type) {
     case 9:
       printf("add $%s, $%s, $%s\n", arg1, arg2, arg3);

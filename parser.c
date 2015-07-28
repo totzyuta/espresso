@@ -26,7 +26,7 @@ static void parse_compare(FILE *fp);
 static void parse_comp_symbol(int comp_symbol);
 static void parse_array(FILE *fp);
 static void parse_error(char *error_func_name, char *error_message);
-static void print_data();
+static void gen_code_data_segment();
 static void print_nop();
 static void init_print();
 void gen_code_operation(Node *node);
@@ -60,7 +60,7 @@ void parse_program(FILE *fp) {
   parse_statements(fp);
   // printf("プログラム全体の始まり\n");
   printf("jr $ra\n");
-  print_data();
+  gen_code_data_segment();
 }
 
 // 変数宣言部の解析
@@ -682,7 +682,7 @@ void parse_error(char *error_func_name, char *error_message) {
   exit(1);
 }
 
-void print_data() {
+void gen_code_data_segment() {
   struct symbol_table *table = symbol;
   printf("\t.data 0x10004000\n");
   int i;
