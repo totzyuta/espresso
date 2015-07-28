@@ -26,9 +26,11 @@ static void parse_compare(FILE *fp);
 static void parse_comp_symbol(int comp_symbol);
 static void parse_array(FILE *fp);
 static void parse_error(char *error_func_name, char *error_message);
-static void gen_code_data_segment();
-static void print_nop();
-static void init_print();
+
+// code generator (See: gen.c)
+void gen_code_data_segment();
+void gen_code_nop();
+void gen_code_initializer();
 void gen_code_operation(Node *node);
 
 char *error_func_name;
@@ -44,7 +46,7 @@ int add = 0;
 // プログラム全体の解析
 // <プログラム> :== <変数宣言部><文集合>
 void parse_program(FILE *fp) {
-  init_print(); 
+  gen_code_initializer(); 
   // printf("プログラム全体の解析の始まり\n");
   // printf("変数宣言部の解析の始まり\n");
   // 識別子名を格納
@@ -519,7 +521,7 @@ void parse_while(FILE *fp) {
     }
   }
   printf("j $L%d\n", label1);
-  printf("nop\n");
+  gen_code_nop();
   printf("$L%d:\n", label2);
   if(miss == 1){
     error_message = "wrong syntax in while loop";
@@ -624,7 +626,7 @@ void parse_comp_symbol(int comp_symbol) {
     error_message = "wrong relational sign.";
     parse_error(error_func_name, error_message);
   }
-  print_nop();
+  gen_code_nop();
 }
 
 // 配列の解析
@@ -678,43 +680,6 @@ void parse_error(char *error_func_name, char *error_message) {
   if (error_message == NULL) {
     error_message = "sorry, an unknow error occurs...";
   }
-  // printf("error in %s: %s\n", error_func_name, error_message);
+  fprintf(stderr, "error in %s: %s\n", error_func_name, error_message);
   exit(1);
-}
-
-void gen_code_data_segment() {
-  struct symbol_table *table = symbol;
-  printf("\t.data 0x10004000\n");
-  int i;
-  for (i=0; i<add; i++) {
-    printf("_%s:\t.word 0x0000\n", table->id);
-    table++;
-  }
-}
-
-void print_nop(){
-  printf("nop\t\t\t\t# (delay slot)\n");
-}
-
-void init_print() {
-  printf("\tINITIAL_GP = 0x10008000\n");
-  printf("\tINITIAL_SP = 0x7ffffffc\n");
-  printf("\t# system call service number\n\n");
-  printf("\tstop_service = 99\n");
-  printf("\t.text\n\t# 初期化ルーチン\n");
-  printf("init:\n");
-  printf("\t# initialize $gp (global pointer) and $sp (stack pointer)\n");
-  printf("\tla\t$gp, INITIAL_GP\t\t# $gp <- 0x10008000 (INITIAL_GP)\n");
-  printf("\tla\t$sp, INITIAL_SP\t\t# $sp <- 0x7ffffffc (INITIAL_SP)\n");
-  printf("\tjal\tmain\t\t\t# jump to `main'\n");
-  print_nop();
-  printf("\tli\t$v0, stop_service\t# $v0 <- 99 (stop_service)\n");
-  printf("\tsyscall\t\t\t\t# stop\n");
-  print_nop();
-  printf("\t# not reach here\n");
-  printf("stop:\t\t\t\t\t# if syscall return\n");
-  printf("\tj stop\t\t\t\t# infinite loop...\n");
-  print_nop();
-  printf("\n\t.text\t0x00001000\n");
-  printf("main:\n");
 }

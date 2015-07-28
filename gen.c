@@ -97,3 +97,48 @@ void gen_operation(char *arg1, char *arg2, char *arg3, int token_type) {
       break;
   }
 }
+
+
+// variables for generating in parsing 
+extern struct symbol_table symbol[100];
+extern int add;
+
+// generate initialize process 
+void gen_code_initializer() {
+  printf("\tINITIAL_GP = 0x10008000\n");
+  printf("\tINITIAL_SP = 0x7ffffffc\n");
+  printf("\t# system call service number\n\n");
+  printf("\tstop_service = 99\n");
+  printf("\t.text\n\t# 初期化ルーチン\n");
+  printf("init:\n");
+  printf("\t# initialize $gp (global pointer) and $sp (stack pointer)\n");
+  printf("\tla\t$gp, INITIAL_GP\t\t# $gp <- 0x10008000 (INITIAL_GP)\n");
+  printf("\tla\t$sp, INITIAL_SP\t\t# $sp <- 0x7ffffffc (INITIAL_SP)\n");
+  printf("\tjal\tmain\t\t\t# jump to `main'\n");
+  gen_code_nop();
+  printf("\tli\t$v0, stop_service\t# $v0 <- 99 (stop_service)\n");
+  printf("\tsyscall\t\t\t\t# stop\n");
+  gen_code_nop();
+  printf("\t# not reach here\n");
+  printf("stop:\t\t\t\t\t# if syscall return\n");
+  printf("\tj stop\t\t\t\t# infinite loop...\n");
+  gen_code_nop();
+  printf("\n\t.text\t0x00001000\n");
+  printf("main:\n");
+}
+
+// data segment for variables
+void gen_code_data_segment() {
+  struct symbol_table *table = symbol;
+  printf("\t.data 0x10004000\n");
+  int i;
+  for (i=0; i<add; i++) {
+    printf("_%s:\t.word 0x0000\n", table->id);
+    table++;
+  }
+}
+
+// I don wanna do anything
+void gen_code_nop(){
+  printf("nop\t\t\t\t# (delay slot)\n");
+}
