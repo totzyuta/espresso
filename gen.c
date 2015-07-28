@@ -78,6 +78,7 @@ void enable_t(char *tn) {
 }
 
 void gen_operation(char *arg1, char *arg2, char *arg3, int token_type) {
+  printf("nop\t\t\t\t# (delay slot)\n");
   switch (token_type) {
     case 9:
       printf("add $%s, $%s, $%s\n", arg1, arg2, arg3);
