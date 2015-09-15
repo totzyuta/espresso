@@ -1,4 +1,4 @@
-# [WIP] espresso 
+# espresso 
 
 espresso :coffee: is C like programming language. 
 
